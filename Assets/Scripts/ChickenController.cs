@@ -29,7 +29,7 @@ public class ChickenFlapController : MonoBehaviour
     public float turnTorque = 100f;
 
     [Header("6. 동적 Z축 저항 (Roll Damping)")]
-    public float maxZAxisTorqueDamping = 10f; // << 누락되었던 변수 선언입니다.
+    public float maxZAxisTorqueDamping = 10f;
     
     private Rigidbody rb;
     private bool isAKeyPressed;
@@ -88,7 +88,7 @@ public class ChickenFlapController : MonoBehaviour
             {
                 rb.AddForceAtPosition(transform.up * flapThrust, thrusterPoint.position, ForceMode.Force);
                 
-                float torqueDirection = isLeftWing ? 1f : -1f;
+                float torqueDirection = isLeftWing ? -1f : 1f;
                 rb.AddTorque(transform.up * turnTorque * torqueDirection, ForceMode.Force);
             }
         }
