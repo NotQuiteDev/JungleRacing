@@ -254,7 +254,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4074076725418832726}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 24.92, y: 2, z: -35.18}
   m_LocalScale: {x: 2, y: 1.5, z: 2}
   m_ConstrainProportionsScale: 0
@@ -393,14 +393,14 @@ MonoBehaviour:
   rightThrusterPoint: {fileID: 3819933639734036168}
   flapThrust: 10
   upstrokeResistance: 3
-  turnTorque: 10
+  turnTorque: 5
   baseAngularDrag: {x: 0.5, y: 10, z: 10}
   maxZAxisTorqueDamping: 20
   pitchTorque: 1
   minY_LinearDrag: 0.001
   maxY_LinearDrag: 1
-  optimalGlideAngle: 60
-  glideThrustMultiplier: 3
+  optimalGlideAngle: 30
+  glideThrustMultiplier: 1
 --- !u!1 &4128614786518731121
 GameObject:
   m_ObjectHideFlags: 0

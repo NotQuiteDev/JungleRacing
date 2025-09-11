@@ -44,19 +44,19 @@ public class ChickenFlapController : MonoBehaviour
     [Tooltip("날개를 최대로 펼쳤을 때(글라이딩 시)의 Y축 공기 저항 계수입니다. 이 값이 클수록 천천히 떨어집니다.")]
     public float maxY_LinearDrag = 4f;
 
-    // ================== [ 새로 추가된 부분 시작 ] ==================
     [Header("9. 글라이딩 (Gliding)")]
     [Tooltip("글라이딩 시 최대 추력을 얻을 수 있는 몸의 최적 기울기 각도입니다.")]
     public float optimalGlideAngle = 45f;
     [Tooltip("양력과 기울기를 바탕으로 계산될 글라이딩 추력의 최종 강도 계수입니다.")]
     public float glideThrustMultiplier = 20f;
-    // ================== [ 새로 추가된 부분 끝 ] ==================
     
     private Rigidbody rb;
     private bool isAKeyPressed;
     private bool isDKeyPressed;
     private bool isWKeyPressed;
     private bool isSKeyPressed;
+    private bool isQKeyPressed; // << 새로 추가된 변수
+    private bool isEKeyPressed; // << 새로 추가된 변수
 
     void Awake()
     {
@@ -73,6 +73,8 @@ public class ChickenFlapController : MonoBehaviour
         isDKeyPressed = Input.GetKey(KeyCode.D);
         isWKeyPressed = Input.GetKey(KeyCode.W);
         isSKeyPressed = Input.GetKey(KeyCode.S);
+        isQKeyPressed = Input.GetKey(KeyCode.Q); // << 새로 추가된 입력 감지
+        isEKeyPressed = Input.GetKey(KeyCode.E); // << 새로 추가된 입력 감지
 
         // 2. 날개의 시각적 회전만 처리
         HandleWingRotation(leftWing, isAKeyPressed, leftWingUpAngleZ, leftWingDownAngleZ, leftFlapUpTension, leftFlapDownTension);
@@ -84,17 +86,20 @@ public class ChickenFlapController : MonoBehaviour
         // FixedUpdate의 역할: 모든 물리 계산 (가장 안정적인 물리 효과를 위해)
         if (rb == null || leftWing == null || rightWing == null || leftThrusterPoint == null || rightThrusterPoint == null) return;
 
-        // 1. 날갯짓에 따른 상승/저항력 및 회전력 적용
-        HandleWingPhysics(leftWing, isAKeyPressed, leftThrusterPoint, leftWingUpAngleZ, leftWingDownAngleZ, true); // 왼쪽: 양의 회전력
-        HandleWingPhysics(rightWing, isDKeyPressed, rightThrusterPoint, rightWingUpAngleZ, rightWingDownAngleZ, false); // 오른쪽: 음의 회전력
+        // 1. 날갯짓에 따른 상승/저항력 적용
+        HandleWingPhysics(leftWing, isAKeyPressed, leftThrusterPoint, leftWingUpAngleZ, leftWingDownAngleZ);
+        HandleWingPhysics(rightWing, isDKeyPressed, rightThrusterPoint, rightWingUpAngleZ, rightWingDownAngleZ);
 
         // 2. 앞/뒤 기울기(Pitch) 조절 물리 적용
         HandlePitching();
+
+        // 3. 좌/우 회전(Yaw) 조절 물리 적용 << 새로 추가된 함수 호출
+        HandleTurning();
         
-        // 3. 커스텀 회전 저항(안정장치) 적용
+        // 4. 커스텀 회전 저항(안정장치) 적용
         ApplyCustomAngularDamping();
 
-        // 4. 비행 공기역학(양력 및 글라이딩) 적용
+        // 5. 비행 공기역학(양력 및 글라이딩) 적용
         HandleFlightAerodynamics();
     }
 
@@ -106,7 +111,8 @@ public class ChickenFlapController : MonoBehaviour
         wing.localRotation = Quaternion.Slerp(wing.localRotation, targetRotation, currentTension * Time.deltaTime);
     }
 
-    void HandleWingPhysics(Transform wing, bool isKeyPressed, Transform thrusterPoint, float upAngle, float downAngle, bool isLeftWing)
+    // ================== [ 수정된 함수 시작 ] ==================
+    void HandleWingPhysics(Transform wing, bool isKeyPressed, Transform thrusterPoint, float upAngle, float downAngle)
     {
         if (isKeyPressed)
         {
@@ -115,8 +121,7 @@ public class ChickenFlapController : MonoBehaviour
             {
                 rb.AddForceAtPosition(transform.up * flapThrust, thrusterPoint.position, ForceMode.Force);
 
-                float torqueDirection = isLeftWing ? 1f : -1f;
-                rb.AddTorque(transform.up * turnTorque * torqueDirection, ForceMode.Force);
+                // A/D를 눌렀을 때의 좌우 회전(Torque) 로직을 여기에서 제거했습니다.
             }
         }
         else
@@ -128,6 +133,7 @@ public class ChickenFlapController : MonoBehaviour
             }
         }
     }
+    // ================== [ 수정된 함수 끝 ] ==================
 
     void HandlePitching()
     {
@@ -141,6 +147,23 @@ public class ChickenFlapController : MonoBehaviour
             rb.AddTorque(transform.right * pitchTorque, ForceMode.Force);
         }
     }
+
+    // ================== [ 새로 추가된 함수 시작 ] ==================
+    void HandleTurning()
+    {
+        if (isQKeyPressed)
+        {
+            // Q를 누르면 왼쪽으로 회전 (-Y축 방향 토크)
+            rb.AddTorque(-transform.up * turnTorque, ForceMode.Force);
+        }
+
+        if (isEKeyPressed)
+        {
+            // E를 누르면 오른쪽으로 회전 (+Y축 방향 토크)
+            rb.AddTorque(transform.up * turnTorque, ForceMode.Force);
+        }
+    }
+    // ================== [ 새로 추가된 함수 끝 ] ==================
     
     void ApplyCustomAngularDamping()
     {
@@ -166,7 +189,6 @@ public class ChickenFlapController : MonoBehaviour
         rb.AddTorque(worldTorque);
     }
 
-    // ================== [ 수정된 함수 시작 ] ==================
     void HandleFlightAerodynamics()
     {
         // 1. 평균 날개 펼침 정도 계산 (0.0: 접힘, 1.0: 펼침)
@@ -201,7 +223,6 @@ public class ChickenFlapController : MonoBehaviour
         // 4. [글라이딩] 추력 적용
         rb.AddForce(glideForce);
     }
-    // ================== [ 수정된 함수 끝 ] ==================
     
     float GetWingSpreadPercent(Transform wing, float upAngle, float downAngle)
     {
