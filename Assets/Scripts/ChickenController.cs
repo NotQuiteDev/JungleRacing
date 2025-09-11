@@ -27,20 +27,24 @@ public class ChickenFlapController : MonoBehaviour
 
     [Header("5. 회전력(Torque) 설정")]
     public float turnTorque = 100f;
+    
+    // ================== [ 수정된 부분 시작 ] ==================
+    [Header("6. 각축별 회전 저항 (Angular Damping)")]
+    [Tooltip("기본 회전 저항입니다. X(Pitch), Y(Yaw), Z(Roll) 순서입니다.")]
+    public Vector3 baseAngularDrag = new Vector3(0.5f, 0.5f, 1f);
 
-    [Header("6. 동적 Z축 저항 (Roll Damping)")]
-    [Tooltip("Z축(좌우 기울기)에 대한 기본 회전 저항입니다.")]
-    public float baseZDrag = 1f;
-    public float maxZAxisTorqueDamping = 10f; // << 누락되었던 변수 선언입니다.
-
-    [Header("7. 앞/뒤 기울기(Pitch) 설정")] // << 새로 추가된 헤더
-    public float pitchTorque = 50f; // << W, S 키 입력에 사용할 회전력 변수
+    [Tooltip("날개를 펼쳤을 때 Z축(좌우 기울기)에 추가로 적용될 최대 회전 저항입니다.")]
+    public float maxZAxisTorqueDamping = 10f;
+    // ================== [ 수정된 부분 끝 ] ==================
+    
+    [Header("7. 앞/뒤 기울기(Pitch) 설정")]
+    public float pitchTorque = 50f;
 
     private Rigidbody rb;
     private bool isAKeyPressed;
     private bool isDKeyPressed;
-    private bool isWKeyPressed; // << 새로 추가된 변수
-    private bool isSKeyPressed; // << 새로 추가된 변수
+    private bool isWKeyPressed;
+    private bool isSKeyPressed;
 
     void Awake()
     {
@@ -55,14 +59,13 @@ public class ChickenFlapController : MonoBehaviour
         // 1. 키 입력 상태를 변수에 저장 (FixedUpdate와 통신하기 위함)
         isAKeyPressed = Input.GetKey(KeyCode.A);
         isDKeyPressed = Input.GetKey(KeyCode.D);
-        isWKeyPressed = Input.GetKey(KeyCode.W); // << 새로 추가된 입력 감지
-        isSKeyPressed = Input.GetKey(KeyCode.S); // << 새로 추가된 입력 감지
+        isWKeyPressed = Input.GetKey(KeyCode.W);
+        isSKeyPressed = Input.GetKey(KeyCode.S);
 
         // 2. 날개의 시각적 회전만 처리
         HandleWingRotation(leftWing, isAKeyPressed, leftWingUpAngleZ, leftWingDownAngleZ, leftFlapUpTension, leftFlapDownTension);
         HandleWingRotation(rightWing, isDKeyPressed, rightWingUpAngleZ, rightWingDownAngleZ, rightFlapUpTension, rightFlapDownTension);
     }
-
 
     void FixedUpdate()
     {
@@ -74,10 +77,10 @@ public class ChickenFlapController : MonoBehaviour
         HandleWingPhysics(rightWing, isDKeyPressed, rightThrusterPoint, rightWingUpAngleZ, rightWingDownAngleZ, false); // 오른쪽: 음의 회전력
 
         // 2. 앞/뒤 기울기(Pitch) 조절 물리 적용
-        HandlePitching(); // << 새로 추가된 함수 호출
-
-        // 3. 날개 펼침 정도에 따른 Z축 회전 저항(안정장치) 적용
-        ApplyDynamicRollDamping();
+        HandlePitching();
+        
+        // 3. 커스텀 회전 저항(안정장치) 적용
+        ApplyCustomAngularDamping(); // << 함수 이름 변경
     }
 
     // ==========================================================================================
@@ -115,41 +118,55 @@ public class ChickenFlapController : MonoBehaviour
         }
     }
 
-    // << W, S 키 입력에 따른 앞/뒤 기울기 물리 처리를 위한 함수 >>
     void HandlePitching()
     {
         if (isWKeyPressed)
         {
-            // 월드 좌표 기준 오른쪽 벡터(X축)를 축으로 음의 방향(-.right)으로 회전력 적용 = 고개를 숙임
             rb.AddTorque(-transform.right * pitchTorque, ForceMode.Force);
         }
 
         if (isSKeyPressed)
         {
-            // 월드 좌표 기준 오른쪽 벡터(X축)를 축으로 양의 방향(.right)으로 회전력 적용 = 고개를 듬
             rb.AddTorque(transform.right * pitchTorque, ForceMode.Force);
         }
     }
-
-    void ApplyDynamicRollDamping()
+    
+    // ================== [ 수정된 함수 시작 ] ==================
+    void ApplyCustomAngularDamping()
     {
+        // --- Z축(Roll)에 대한 동적 저항 계산 (기존 로직) ---
         // 왼쪽 날개 펼침 정도 계산 (0.0 ~ 1.0)
         float leftSpreadPercent = GetWingSpreadPercent(leftWing, leftWingUpAngleZ, leftWingDownAngleZ);
 
         // 오른쪽 날개 펼침 정도 계산 (0.0 ~ 1.0)
         float rightSpreadPercent = GetWingSpreadPercent(rightWing, rightWingUpAngleZ, rightWingDownAngleZ);
 
-        // 총 저항력 결정 및 적용
+        // 총 펼침 정도에 따른 동적 Z축 저항력 결정
         float totalSpreadPercent = Mathf.Clamp01(leftSpreadPercent + rightSpreadPercent);
         float dynamicZ_Damping = maxZAxisTorqueDamping * totalSpreadPercent;
-        float totalZ_Damping = baseZDrag + dynamicZ_Damping;
 
+        // --- 각 축별 최종 저항 계수 계산 ---
+        // X, Y 축은 기본 저항만 사용
+        float totalDampingX = baseAngularDrag.x;
+        float totalDampingY = baseAngularDrag.y;
+        // Z 축은 기본 저항에 동적 저항을 더함
+        float totalDampingZ = baseAngularDrag.z + dynamicZ_Damping;
+
+        // --- 계산된 저항을 토크로 변환하여 적용 ---
+        // 현재 회전 속도를 로컬 좌표 기준으로 변환
         Vector3 localAV = transform.InverseTransformDirection(rb.angularVelocity);
-        float torqueZ = -localAV.z * totalZ_Damping;
-        Vector3 localTorque = new Vector3(0, 0, torqueZ); // << "new new" 오타 수정된 부분입니다.
+        
+        // 각 축의 회전 속도에 반대 방향으로 저항 토크 계산
+        float torqueX = -localAV.x * totalDampingX;
+        float torqueY = -localAV.y * totalDampingY;
+        float torqueZ = -localAV.z * totalDampingZ;
+
+        // 계산된 로컬 토크를 다시 월드 좌표 기준으로 변환하여 적용
+        Vector3 localTorque = new Vector3(torqueX, torqueY, torqueZ);
         Vector3 worldTorque = transform.TransformDirection(localTorque);
         rb.AddTorque(worldTorque);
     }
+    // ================== [ 수정된 함수 끝 ] ==================
 
     float GetWingSpreadPercent(Transform wing, float upAngle, float downAngle)
     {
