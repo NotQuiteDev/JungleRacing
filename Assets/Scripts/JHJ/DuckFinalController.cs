@@ -1,3 +1,4 @@
+using Mono.Cecil.Cil;
 using UnityEngine;
 
 // 오리를 조종하는 스크립트 (최종 완성 버전!)
@@ -28,8 +29,14 @@ public class DuckFinalController : MonoBehaviour
     public float minimumVelocityThreshold = 0.001f; // 아주 작은 값으로 시작
 
     [Header("Web Params")]
-    public float webOpenScale = 2f;
-    public float webCloseScale = 0.5f;
+    [Tooltip("물갈퀴 펼쳤을 때 X축(좌우) 크기")]
+    public float webOpenScaleX = 2f; // 기존 기본값 유지
+    [Tooltip("물갈퀴 펼쳤을 때 Y축(상하) 크기")]
+    public float webOpenScaleY = 0.5f; // 기존 Y축은 변경 안 했으므로 1f
+    [Tooltip("물갈퀴 접었을 때 X축(좌우) 크기")]
+    public float webCloseScaleX = 0.5f; // 기존 기본값 유지
+    [Tooltip("물갈퀴 접었을 때 Y축(상하) 크기")]
+    public float webCloseScaleY = 0.1f; // 기존 Y축은 변경 안 했으므로 1f
 
     // === 현재 상태를 기억하는 변수들 ===
     private float _currentLeftLegAngle;
@@ -58,16 +65,22 @@ public class DuckFinalController : MonoBehaviour
     private void HandleInputAndWebScaling()
     {
         _leftWebOpen = Input.GetKey(KeyCode.Q);
-        _rightWebOpen = Input.GetKey(KeyCode.E);
+        _rightWebOpen = Input.GetKey(KeyCode.R); // E → R로 변경
 
-        leftWeb.localScale = new Vector3(_leftWebOpen ? webOpenScale : webCloseScale, leftWeb.localScale.y, leftWeb.localScale.z);
-        rightWeb.localScale = new Vector3(_rightWebOpen ? webOpenScale : webCloseScale, rightWeb.localScale.y, rightWeb.localScale.z);
+        // X축과 Y축을 각각 관리
+        float currentScaleX = _leftWebOpen ? webOpenScaleX : webCloseScaleX;
+        float currentScaleY = _leftWebOpen ? webOpenScaleY : webCloseScaleY;
+        leftWeb.localScale = new Vector3(currentScaleX, currentScaleY, leftWeb.localScale.z);
+        
+        currentScaleX = _rightWebOpen ? webOpenScaleX : webCloseScaleX;
+        currentScaleY = _rightWebOpen ? webOpenScaleY : webCloseScaleY;
+        rightWeb.localScale = new Vector3(currentScaleX, currentScaleY, rightWeb.localScale.z);
     }
 
     private (float leftVel, float rightVel, bool leftKick, bool rightKick, bool leftRet, bool rightRet) HandleLegMovement()
     {
-        float leftTargetAngle = Input.GetKey(KeyCode.A) ? legBackwardAngle : legForwardAngle;
-        float rightTargetAngle = Input.GetKey(KeyCode.D) ? legBackwardAngle : legForwardAngle;
+        float leftTargetAngle = Input.GetKey(KeyCode.W) ? legBackwardAngle : legForwardAngle; // A → W로 변경
+        float rightTargetAngle = Input.GetKey(KeyCode.E) ? legBackwardAngle : legForwardAngle; // D → E로 변경
 
         float previousLeftAngle = _currentLeftLegAngle;
         float previousRightAngle = _currentRightLegAngle;
@@ -93,31 +106,36 @@ public class DuckFinalController : MonoBehaviour
     {
         var (leftVel, rightVel, leftKick, rightKick, leftRet, rightRet) = movement;
 
-        if (leftKick && rightKick) // 최우선: 다리를 당기면 뒤로 가기
+        if (leftKick && rightKick)
         {
-            // [시도 1] body의 right 방향이 실제 앞 방향일 경우
-            body.AddForce(-body.transform.up * propulsionForce * backwardPropulsionModifier, ForceMode.Acceleration);
+            Debug.Log("후진");
+            body.AddForce(-body.transform.up * propulsionForce /* * backwardPropulsionModifier */, ForceMode.Acceleration);
         }
-        else if (leftRet && rightRet) // 2순위: 다리를 밀면 앞으로 가기
+        else if (leftRet && rightRet)
         {
-            // [시도 1] body의 right 방향이 실제 앞 방향일 경우
+            Debug.Log("전진");
             body.AddForce(body.transform.up * propulsionForce, ForceMode.Acceleration);
         }
         else if (leftKick)
         {
-            body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(leftVel), ForceMode.Acceleration);
+            Debug.Log("왼발 원상복구");
+            body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(leftVel) /* * reverseTurnModifier */, ForceMode.Acceleration);
         }
         else if (rightKick)
         {
-            body.AddTorque(Vector3.up * turnForce * Mathf.Abs(rightVel), ForceMode.Acceleration);
+            Debug.Log("오른발 원상복구");
+            body.AddTorque(Vector3.up * turnForce * Mathf.Abs(rightVel) /* * reverseTurnModifier */, ForceMode.Acceleration);
         }
         else if (leftRet)
         {
-            body.AddTorque(Vector3.up * turnForce * Mathf.Abs(leftVel) * reverseTurnModifier, ForceMode.Acceleration);
+            Debug.Log("왼발 킥");
+            body.AddTorque(Vector3.up * turnForce * Mathf.Abs(leftVel), ForceMode.Acceleration);
+
         }
         else if (rightRet)
         {
-            body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(rightVel) * reverseTurnModifier, ForceMode.Acceleration);
+            Debug.Log("오른발 킥");
+            body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(rightVel), ForceMode.Acceleration);
         }
     }
 }
