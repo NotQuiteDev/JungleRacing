@@ -287,7 +287,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &813826613
 Transform:
   m_ObjectHideFlags: 0
@@ -1178,7 +1178,8 @@ MonoBehaviour:
   rightFlapUpTension: 20
   leftThrusterPoint: {fileID: 382072739}
   rightThrusterPoint: {fileID: 1494213749}
-  flapForce: 1
+  flapThrust: 1
+  upstrokeResistance: 50
 --- !u!1 &1963671342
 GameObject:
   m_ObjectHideFlags: 0

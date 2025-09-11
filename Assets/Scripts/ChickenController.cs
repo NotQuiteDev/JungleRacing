@@ -22,7 +22,12 @@ public class ChickenFlapController : MonoBehaviour
     [Header("4. 추진력(Force) 설정")]
     public Transform leftThrusterPoint;
     public Transform rightThrusterPoint;
-    public float flapForce = 100f;
+    [Tooltip("날개를 내릴 때 가해지는 고정적인 상승력")]
+    public float flapThrust = 250f;
+
+    // [수정] '저항 계수' -> '고정 저항력'으로 변경
+    [Tooltip("날개를 올릴 때 가해지는 고정적인 저항력 (아래 방향)")]
+    public float upstrokeResistance = 50f;
 
     private Rigidbody rb;
 
@@ -31,45 +36,58 @@ public class ChickenFlapController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
+    // [삭제] 속도 계산에 필요했던 Start() 함수와 변수들 모두 삭제
+
     void Update()
     {
-        if (leftWing == null || rightWing == null || leftThrusterPoint == null || rightThrusterPoint == null)
-        {
-            Debug.LogError("오류: 스크립트에 필요한 모든 Transform이 지정되지 않았습니다!");
-            return;
-        }
-
+        if (leftWing == null || rightWing == null || leftThrusterPoint == null || rightThrusterPoint == null) return;
+        
         // --- 왼쪽 날개 로직 ---
         {
-            // 날개 회전은 키를 '누르고 있는 동안' 계속 유지 (GetKey 사용)
             bool isAKeyPressed = Input.GetKey(KeyCode.A);
             float targetAngle = isAKeyPressed ? leftWingDownAngleZ : leftWingUpAngleZ;
-            float currentTension = isAKeyPressed ? leftFlapDownTension : leftFlapUpTension;
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
-            leftWing.localRotation = Quaternion.Slerp(leftWing.localRotation, targetRotation, currentTension * Time.deltaTime);
+            leftWing.localRotation = Quaternion.Slerp(leftWing.localRotation, targetRotation, (isAKeyPressed ? leftFlapDownTension : leftFlapUpTension) * Time.deltaTime);
 
-            // [수정] 힘은 키를 '처음 눌렀을 때' 딱 한 번만 가함 (GetKeyDown 사용)
-            if (Input.GetKeyDown(KeyCode.A))
+            if (isAKeyPressed) // 키를 눌렀을 때
             {
-                // [수정] ForceMode.Impulse 로 변경하여 순간적인 힘을 가함
-                rb.AddForceAtPosition(transform.up * flapForce, leftThrusterPoint.position, ForceMode.Impulse);
+                // 날개가 아래로 움직이는 동안, 'flapThrust' 만큼의 고정된 상승력을 줌
+                if (Quaternion.Angle(leftWing.localRotation, targetRotation) > 1f)
+                {
+                    rb.AddForceAtPosition(transform.up * flapThrust, leftThrusterPoint.position, ForceMode.Force);
+                }
+            }
+            else // 키를 뗐을 때
+            {
+                // [핵심 수정] 속도 계산 없이, 날개가 위로 움직이는 동안 'upstrokeResistance' 만큼의 고정된 저항력을 줌
+                if (Quaternion.Angle(leftWing.localRotation, targetRotation) > 1f)
+                {
+                    rb.AddForceAtPosition(-transform.up * upstrokeResistance, leftThrusterPoint.position, ForceMode.Force);
+                }
             }
         }
 
         // --- 오른쪽 날개 로직 ---
         {
-            // 날개 회전은 키를 '누르고 있는 동안' 계속 유지 (GetKey 사용)
             bool isDKeyPressed = Input.GetKey(KeyCode.D);
             float targetAngle = isDKeyPressed ? rightWingDownAngleZ : rightWingUpAngleZ;
-            float currentTension = isDKeyPressed ? rightFlapDownTension : rightFlapUpTension;
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
-            rightWing.localRotation = Quaternion.Slerp(rightWing.localRotation, targetRotation, currentTension * Time.deltaTime);
+            rightWing.localRotation = Quaternion.Slerp(rightWing.localRotation, targetRotation, (isDKeyPressed ? rightFlapDownTension : rightFlapUpTension) * Time.deltaTime);
 
-            // [수정] 힘은 키를 '처음 눌렀을 때' 딱 한 번만 가함 (GetKeyDown 사용)
-            if (Input.GetKeyDown(KeyCode.D))
+            if (isDKeyPressed)
             {
-                // [수정] ForceMode.Impulse 로 변경하여 순간적인 힘을 가함
-                rb.AddForceAtPosition(transform.up * flapForce, rightThrusterPoint.position, ForceMode.Impulse);
+                if (Quaternion.Angle(rightWing.localRotation, targetRotation) > 1f)
+                {
+                    rb.AddForceAtPosition(transform.up * flapThrust, rightThrusterPoint.position, ForceMode.Force);
+                }
+            }
+            else
+            {
+                // [핵심 수정] 여기도 마찬가지로 고정된 저항력을 적용
+                if (Quaternion.Angle(rightWing.localRotation, targetRotation) > 1f)
+                {
+                    rb.AddForceAtPosition(-transform.up * upstrokeResistance, rightThrusterPoint.position, ForceMode.Force);
+                }
             }
         }
     }
