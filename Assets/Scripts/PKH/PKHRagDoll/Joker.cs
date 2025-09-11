@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class Joker : MonoBehaviour
 {
+    public static Joker Instance { get; private set; }
+
     // Component
     private Animator anim;
 
     [SerializeField] private Transform targetPos;
+    private Vector3 upDivingOffset = new Vector3(0, 1.4f, 0);
+    private Vector3 downDivingOffset = new Vector3(0, 0.34f, 0);
+
 
     private Rigidbody rb;
     private Rigidbody[] ragsRigid;
-    [SerializeField] private Rigidbody hipRigid;
+    [SerializeField] private Rigidbody spineRigid;
+    [SerializeField] private Rigidbody legRigid;
     private CharacterJoint[] joints;
     private Collider col;
     private Collider[] ragColls;
@@ -22,6 +28,7 @@ public class Joker : MonoBehaviour
 
     // State
     [SerializeField] private LayerMask groundLayer;
+    private bool isRagDoll = false; // 현재 레그돌 실행중인지
     private bool isGround = false;
     private bool isAttack = false;
    
@@ -34,8 +41,13 @@ public class Joker : MonoBehaviour
     private Coroutine ragDollCoroutine;
 
 
+    private Vector3 divingDir;
+
     private void Awake()
     {
+        if(Instance == null) Instance = this;
+
+
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         //ragsRigid = GetComponentsInChildren<Rigidbody>();
@@ -75,6 +87,8 @@ public class Joker : MonoBehaviour
 
         if (dir == Vector3.zero)
         {
+            divingDir = dir;
+
             // 레그돌에서 애니메이션을 꺼도 이게 되는건질 알아봐야함
             anim.SetBool(WALKANIM, false);
         }
@@ -108,6 +122,11 @@ public class Joker : MonoBehaviour
 
     private void DisableRagdoll()
     {
+        isRagDoll = false;
+
+        Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0);
+        transform.position = original;
+
         // 1. 애니메이션 실행
         anim.enabled = true;
 
@@ -141,6 +160,8 @@ public class Joker : MonoBehaviour
 
     private void EnableRagdoll()
     {
+        isRagDoll = true;
+
         // 1. 애니메이션 종료
         anim.enabled = false;
 
@@ -170,15 +191,12 @@ public class Joker : MonoBehaviour
         col.enabled = false;
 
         isGround = true;
-
-        //if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-        //ragDollCoroutine = StartCoroutine(ResetRagDoll());
     }
 
     // 다시 레그돌 실행
     private IEnumerator ResetRagDoll()
     {
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2.5f);
         DisableRagdoll();
     }
 
@@ -195,30 +213,32 @@ public class Joker : MonoBehaviour
         isAttack = true;
         curAttackDelay = attackDelay;
 
-
-
         EnableRagdoll();
 
-        Vector3 dir = (targetPos.position - transform.position).normalized;
-        hipRigid.AddForce(dir * 150f, ForceMode.Impulse);
+        Vector3 dir;
 
-        /*
-        // 밀고
-        Vector3 dir = (targetPos.position - transform.position).normalized;
-        rb.AddForce(dir * 15f, ForceMode.Impulse);
-
-        // 받고
-        Vector3 v = rb.linearVelocity;
-        Vector3 w = rb.angularVelocity;
-
-        // 자식에 넣고
-        foreach (var r in ragsRigid)
+        if (InputManager.Instance.UpDiving())
         {
-            r.linearVelocity = v;
-            r.angularVelocity = w;
-        }*/
+            //dir = (upDivingVector - transform.position).normalized;
 
-        yield return new WaitForSeconds(1.5f);
+            dir = (upDivingOffset + targetPos.position);
+            dir = (dir - transform.position).normalized;
+
+            spineRigid.AddForce(dir * 150f, ForceMode.Impulse);
+        }
+        else
+        {
+            //dir = (downDivingVector - transform.position).normalized;
+            //dir = downDivingVector.normalized;
+
+            dir = (downDivingOffset + targetPos.position);
+            dir = (dir - transform.position).normalized;
+
+            legRigid.AddForce(dir * 150f, ForceMode.Impulse);
+        }
+
+        yield return new WaitForSeconds(2.5f);
+
         DisableRagdoll();
 
         Debug.Log("이제 일어나기");
@@ -227,7 +247,7 @@ public class Joker : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Obstacle"))
+        if(!isRagDoll && collision.gameObject.CompareTag("Obstacle"))
         {
             Rigidbody obsRigid = collision.gameObject.GetComponent<Rigidbody>();
             obsRigid.freezeRotation = false;
@@ -238,6 +258,21 @@ public class Joker : MonoBehaviour
             // 레그돌 실행
             EnableRagdoll();
             rb.AddForce(-dir * rb.linearVelocity.magnitude, ForceMode.VelocityChange);
+
+            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+            ragDollCoroutine = StartCoroutine(ResetRagDoll());
+        }
+        else if(collision.gameObject.CompareTag("Ball"))
+        {
+            EnableRagdoll();
+
+            Vector3 dir = transform.position - collision.gameObject.transform.position;
+            dir.Normalize();
+
+            foreach (var r in ragsRigid)
+            {
+                r.AddForce(dir * 20, ForceMode.Impulse);
+            }
 
             if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
             ragDollCoroutine = StartCoroutine(ResetRagDoll());

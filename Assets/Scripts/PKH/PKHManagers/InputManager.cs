@@ -21,7 +21,7 @@ public class InputManager : MonoBehaviour
         playerInput.Player.Enable();
 
         //playerInput.Player.Cancle.performed += OnSetting_performed;
-        playerInput.Player.Attack.performed += Attack_performed;
+        playerInput.Player.Diving.performed += Attack_performed;
     }
 
     private void Start()
@@ -49,7 +49,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        playerInput.Player.Attack.performed -= Attack_performed;
+        playerInput.Player.Diving.performed -= Attack_performed;
 
         playerInput.Dispose();
     }
@@ -89,6 +89,11 @@ public class InputManager : MonoBehaviour
         Vector2 dir = playerInput.Player.Move.ReadValue<Vector2>();
         dir.Normalize();
         return dir;
+    }
+
+    public bool UpDiving()
+    {
+        return playerInput.Player.Run.IsPressed();
     }
 }
 
