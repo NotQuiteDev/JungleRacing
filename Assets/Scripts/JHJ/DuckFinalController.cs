@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 오리를 조종하는 스크립트 (최종 완성 버전)
+// 오리를 조종하는 스크립트 (최종 완성 버전!)
 public class DuckFinalController : MonoBehaviour
 {
     // === 게임 오브젝트들을 연결하는 부분 ===
@@ -13,19 +13,19 @@ public class DuckFinalController : MonoBehaviour
 
     // === 움직임 설정값들 ===
     [Header("Movement Params")]
-    public float legForwardAngle = -120f;      // 다리를 앞으로 뻗을 때 각도 (기본 상태)
-    public float legBackwardAngle = -60f;     // 다리를 뒤로 젓을 때 각도 (키를 누를 때)
+    public float legForwardAngle = -120f;
+    public float legBackwardAngle = -60f;
     public float legMoveSpeed = 250f;
 
     [Header("Forces")]
-    public float propulsionForce = 25f;       // 직진 힘의 세기
-    public float turnForce = 15f;           // 회전 힘의 세기
-    [Tooltip("후진 시 힘의 비율 (0.0 ~ 1.0)")]
-    public float backwardPropulsionModifier = 0.5f; // 후진 힘 감소 비율
+    public float propulsionForce = 25f;
+    public float turnForce = 15f;
+    [Tooltip("앞으로 갈 때 힘의 비율 (0.0 ~ 1.0)")] // [수정됨] 설명 변경
+    public float backwardPropulsionModifier = 0.5f; // [수정됨] 이제 앞으로 가는 힘에 적용됨
     [Tooltip("역회전 시 힘의 비율 (0.0 ~ 1.0)")]
-    public float reverseTurnModifier = 0.5f;        // 역회전 힘 감소 비율
+    public float reverseTurnModifier = 0.5f;
     [Tooltip("힘 적용 시 최소 속도 임계값")]
-    public float minimumVelocityThreshold = 0.001f; // 너무 작은 움직임 무시
+    public float minimumVelocityThreshold = 0.001f; // 아주 작은 값으로 시작
 
     [Header("Web Params")]
     public float webOpenScale = 2f;
@@ -45,7 +45,7 @@ public class DuckFinalController : MonoBehaviour
 
     void Update()
     {
-        // 1단계: 입력 처리 및 물갈퀴 크기 조절
+        // 1단계: 입력 처리 및 물갈퀘 크기 조절
         HandleInputAndWebScaling();
 
         // 2단계: 다리 움직임 처리 및 정보 반환
@@ -93,27 +93,29 @@ public class DuckFinalController : MonoBehaviour
     {
         var (leftVel, rightVel, leftKick, rightKick, leftRet, rightRet) = movement;
 
-        if (leftKick && rightKick) // 최우선: 직진
+        if (leftKick && rightKick) // 최우선: 다리를 당기면 뒤로 가기
         {
-            body.AddForce(transform.parent.forward * propulsionForce, ForceMode.Acceleration);
+            // [시도 1] body의 right 방향이 실제 앞 방향일 경우
+            body.AddForce(-body.transform.up * propulsionForce * backwardPropulsionModifier, ForceMode.Acceleration);
         }
-        else if (leftRet && rightRet) // 2순위: 후진
+        else if (leftRet && rightRet) // 2순위: 다리를 밀면 앞으로 가기
         {
-            body.AddForce(-transform.parent.forward * propulsionForce * backwardPropulsionModifier, ForceMode.Acceleration);
+            // [시도 1] body의 right 방향이 실제 앞 방향일 경우
+            body.AddForce(body.transform.up * propulsionForce, ForceMode.Acceleration);
         }
-        else if (leftKick) // 3순위: 왼발로 차기 = 오른쪽 회전 (시계방향)
+        else if (leftKick)
         {
             body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(leftVel), ForceMode.Acceleration);
         }
-        else if (rightKick) // 4순위: 오른발로 차기 = 왼쪽 회전 (반시계방향)
+        else if (rightKick)
         {
             body.AddTorque(Vector3.up * turnForce * Mathf.Abs(rightVel), ForceMode.Acceleration);
         }
-        else if (leftRet) // 5순위: 왼발 복귀 = 왼쪽 역회전 (반시계방향)
+        else if (leftRet)
         {
             body.AddTorque(Vector3.up * turnForce * Mathf.Abs(leftVel) * reverseTurnModifier, ForceMode.Acceleration);
         }
-        else if (rightRet) // 6순위: 오른발 복귀 = 오른쪽 역회전 (시계방향)
+        else if (rightRet)
         {
             body.AddTorque(-Vector3.up * turnForce * Mathf.Abs(rightVel) * reverseTurnModifier, ForceMode.Acceleration);
         }
