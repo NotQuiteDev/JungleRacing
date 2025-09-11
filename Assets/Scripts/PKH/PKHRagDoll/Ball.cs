@@ -18,6 +18,7 @@ public class Ball : MonoBehaviour
 
     public void Shoot()
     {
+        //vector3 dir = pos.position - transform.position;
         Vector3 dir = Joker.Instance.transform.position - transform.position;
 
         rb.AddForce(dir.normalized * power, ForceMode.Impulse);
