@@ -38,14 +38,20 @@ public class ChickenFlapController : MonoBehaviour
     [Header("7. 앞/뒤 기울기(Pitch) 설정")]
     public float pitchTorque = 50f;
 
-    // ================== [ 새로 추가된 부분 시작 ] ==================
     [Header("8. 동적 양력 (Y축 저항 조절)")]
     [Tooltip("날개를 접었을 때(날갯짓 시)의 Y축 공기 저항 계수입니다.")]
     public float minY_LinearDrag = 0.1f;
     [Tooltip("날개를 최대로 펼쳤을 때(글라이딩 시)의 Y축 공기 저항 계수입니다. 이 값이 클수록 천천히 떨어집니다.")]
     public float maxY_LinearDrag = 4f;
-    // ================== [ 새로 추가된 부분 끝 ] ==================
 
+    // ================== [ 새로 추가된 부분 시작 ] ==================
+    [Header("9. 글라이딩 (Gliding)")]
+    [Tooltip("글라이딩 시 최대 추력을 얻을 수 있는 몸의 최적 기울기 각도입니다.")]
+    public float optimalGlideAngle = 45f;
+    [Tooltip("양력과 기울기를 바탕으로 계산될 글라이딩 추력의 최종 강도 계수입니다.")]
+    public float glideThrustMultiplier = 20f;
+    // ================== [ 새로 추가된 부분 끝 ] ==================
+    
     private Rigidbody rb;
     private bool isAKeyPressed;
     private bool isDKeyPressed;
@@ -88,8 +94,8 @@ public class ChickenFlapController : MonoBehaviour
         // 3. 커스텀 회전 저항(안정장치) 적용
         ApplyCustomAngularDamping();
 
-        // 4. 날개 펼침에 따른 동적 양력(Y축 저항) 적용 << 새로 추가된 함수 호출
-        HandleDynamicLift();
+        // 4. 비행 공기역학(양력 및 글라이딩) 적용
+        HandleFlightAerodynamics();
     }
 
     void HandleWingRotation(Transform wing, bool isKeyPressed, float upAngle, float downAngle, float upTension, float downTension)
@@ -141,7 +147,7 @@ public class ChickenFlapController : MonoBehaviour
         // --- Z축(Roll)에 대한 동적 저항 계산 (기존 로직) ---
         float leftSpreadPercent = GetWingSpreadPercent(leftWing, leftWingUpAngleZ, leftWingDownAngleZ);
         float rightSpreadPercent = GetWingSpreadPercent(rightWing, rightWingUpAngleZ, rightWingDownAngleZ);
-        float totalSpreadPercent = Mathf.Clamp01(leftSpreadPercent + rightSpreadPercent);
+        float totalSpreadPercent = (leftSpreadPercent + rightSpreadPercent) / 2f;
         float dynamicZ_Damping = maxZAxisTorqueDamping * totalSpreadPercent;
 
         // --- 각 축별 최종 저항 계수 계산 ---
@@ -160,38 +166,56 @@ public class ChickenFlapController : MonoBehaviour
         rb.AddTorque(worldTorque);
     }
 
-    // ================== [ 새로 추가된 함수 시작 ] ==================
-    void HandleDynamicLift()
+    // ================== [ 수정된 함수 시작 ] ==================
+    void HandleFlightAerodynamics()
     {
-        // 1. 평균 날개 펼침 정도 계산 (0.0: 접힌 상태, 1.0: 완전히 펼친 상태)
-        // GetWingSpreadPercent는 날개가 펼쳐진 정도(UpAngle에 가까운 정도)를 0~1로 반환합니다.
+        // 1. 평균 날개 펼침 정도 계산 (0.0: 접힘, 1.0: 펼침)
         float leftSpreadRatio = GetWingSpreadPercent(leftWing, leftWingUpAngleZ, leftWingDownAngleZ);
         float rightSpreadRatio = GetWingSpreadPercent(rightWing, rightWingUpAngleZ, rightWingDownAngleZ);
         float averageSpreadRatio = (leftSpreadRatio + rightSpreadRatio) / 2f;
 
-        // 2. 날개 펼침 정도에 따라 현재 프레임의 Y축 저항 계수를 계산
-        // Lerp(최소, 최대, 비율) 함수를 사용하여 부드럽게 변화하는 값을 얻음
-        // 이제 spreadRatio가 1(펼침)일 때 maxY_LinearDrag가 적용됩니다.
-        float currentY_Drag = Mathf.Lerp(minY_LinearDrag, maxY_LinearDrag, averageSpreadRatio);
+        // 날개가 거의 접혀있으면 공기역학 효과를 적용하지 않음
+        if (averageSpreadRatio < 0.1f) return;
 
-        // 3. Y축 속도에 반대되는 저항 힘을 계산하여 적용 (Y축 Linear Damping 수동 구현)
+        // 2. [양력] 날개 펼침 정도에 따른 Y축 저항(양력) 계산 및 적용
+        float currentY_Drag = Mathf.Lerp(minY_LinearDrag, maxY_LinearDrag, averageSpreadRatio);
         float yVelocity = rb.linearVelocity.y;
         Vector3 resistanceForce = new Vector3(0, -yVelocity * currentY_Drag, 0);
-
         rb.AddForce(resistanceForce);
-    }
-    // ================== [ 새로 추가된 함수 끝 ] ==================
 
+        // 3. [글라이딩] 몸체 기울기에 따른 전후방 추력 계산
+        // 몸체의 앞뒤 기울기(Pitch) 각도 계산 (-180 ~ 180 범위)
+        float localPitchAngle = transform.localEulerAngles.x;
+        if (localPitchAngle > 180) localPitchAngle -= 360;
+
+        // 기울기 각도를 기반으로 추력 계수(-1 ~ 1) 계산
+        // -optimalGlideAngle(숙임)일 때 +1, +optimalGlideAngle(젖힘)일 때 -1
+        float pitchFactor = Mathf.Clamp(-localPitchAngle / optimalGlideAngle, -1f, 1f);
+
+        // 최종 추력 계산: (현재 양력 계수 * 기울기 요소 * 사용자 설정 계수)
+        // 현재 속력(airSpeed)에 비례하여 힘을 가함
+        float airSpeed = rb.linearVelocity.magnitude;
+        float glideForceMagnitude = currentY_Drag * pitchFactor * glideThrustMultiplier;
+        Vector3 glideForce = -transform.forward * glideForceMagnitude * airSpeed;
+        
+        // 4. [글라이딩] 추력 적용
+        rb.AddForce(glideForce);
+    }
+    // ================== [ 수정된 함수 끝 ] ==================
+    
     float GetWingSpreadPercent(Transform wing, float upAngle, float downAngle)
     {
+        // 이 함수는 날개가 downAngle에 있을 때 0, upAngle에 있을 때 1을 반환합니다. (즉, 펼쳐진 정도)
         Quaternion upRot = Quaternion.Euler(0, 0, upAngle);
         Quaternion downRot = Quaternion.Euler(0, 0, downAngle);
-
+        
         float totalAngleRange = Quaternion.Angle(upRot, downRot);
         if (totalAngleRange < 0.1f) return 0; // 0으로 나누는 오류 방지
-
+        
+        // downAngle로부터 현재 각도가 얼마나 떨어져 있는지 계산
         float currentAngleFromDown = Quaternion.Angle(wing.localRotation, downRot);
-
+        
+        // 전체 범위 대비 현재 떨어진 각도의 비율을 반환
         return Mathf.Clamp01(currentAngleFromDown / totalAngleRange);
     }
 }
