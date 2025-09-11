@@ -1,0 +1,99 @@
+using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+
+public class InputManager : MonoBehaviour
+{
+    public static InputManager Instance { get; private set;}
+
+    public event EventHandler OnAttack;
+    //public event EventHandler OnSetting;
+
+    public PlayerInput playerInput {  get; private set; }
+    public bool connectGamePad { get; private set; } = false;
+
+    private void Awake()
+    {
+        if(Instance == null) Instance = this;
+
+        playerInput = new PlayerInput();
+        playerInput.Player.Enable();
+
+        //playerInput.Player.Cancle.performed += OnSetting_performed;
+        playerInput.Player.Diving.performed += Attack_performed;
+    }
+
+    private void Start()
+    {
+        foreach (var device in InputSystem.devices)
+        {
+            if (device is Gamepad)
+            {
+                connectGamePad = true;
+                ChangeDeviceState(true);
+                break;
+            }
+        }
+    }
+
+    private void OnEnable()
+    {
+        InputSystem.onDeviceChange += OnDeviceChange;
+    }
+
+    private void OnDisable()
+    {
+        InputSystem.onDeviceChange -= OnDeviceChange;
+    }
+
+    private void OnDestroy()
+    {
+        playerInput.Player.Diving.performed -= Attack_performed;
+
+        playerInput.Dispose();
+    }
+
+    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+    {
+        if (device is Gamepad)
+        {
+            switch (change)
+            {
+                case InputDeviceChange.Added:
+                    connectGamePad = true;
+                    ChangeDeviceState(true);
+                    break;
+                case InputDeviceChange.Removed:
+                    connectGamePad = false;
+                    ChangeDeviceState(false);
+                    break;
+            }
+        }
+    }
+
+    private void ChangeDeviceState(bool isController)
+    {
+        connectGamePad = isController;
+        //PlayerController.Instance.ChangeSensity(isController);
+    }
+
+
+    private void Attack_performed(InputAction.CallbackContext obj)
+    {
+        OnAttack?.Invoke(this, EventArgs.Empty);
+    }
+
+    public Vector2 MoveDirNormalized()
+    {
+        Vector2 dir = playerInput.Player.Move.ReadValue<Vector2>();
+        dir.Normalize();
+        return dir;
+    }
+
+    public bool UpDiving()
+    {
+        return playerInput.Player.Run.IsPressed();
+    }
+}
+
