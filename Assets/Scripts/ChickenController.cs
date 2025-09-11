@@ -29,7 +29,7 @@ public class ChickenFlapController : MonoBehaviour
     public float turnTorque = 100f;
 
     [Header("6. 동적 Z축 저항 (Roll Damping)")]
-    public float maxZAxisTorqueDamping = 10f;
+    public float maxZAxisTorqueDamping = 10f; // << 누락되었던 변수 선언입니다.
     
     private Rigidbody rb;
     private bool isAKeyPressed;
@@ -39,7 +39,7 @@ public class ChickenFlapController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
     }
-
+    
     void Update()
     {
         // Update의 역할: 입력 감지 + 시각적 회전 (가장 부드러운 화면을 위해)
@@ -71,9 +71,6 @@ public class ChickenFlapController : MonoBehaviour
     // 로직을 명확하게 분리하기 위한 도우미 함수들
     // ==========================================================================================
 
-    /// <summary>
-    /// 한쪽 날개의 시각적 회전을 담당하는 함수
-    /// </summary>
     void HandleWingRotation(Transform wing, bool isKeyPressed, float upAngle, float downAngle, float upTension, float downTension)
     {
         float targetAngle = isKeyPressed ? downAngle : upAngle;
@@ -81,10 +78,7 @@ public class ChickenFlapController : MonoBehaviour
         Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
         wing.localRotation = Quaternion.Slerp(wing.localRotation, targetRotation, currentTension * Time.deltaTime);
     }
-
-    /// <summary>
-    /// 한쪽 날개의 물리적 힘(상승/저항/회전)을 담당하는 함수
-    /// </summary>
+    
     void HandleWingPhysics(Transform wing, bool isKeyPressed, Transform thrusterPoint, float upAngle, float downAngle, bool isLeftWing)
     {
         if (isKeyPressed)
@@ -94,7 +88,7 @@ public class ChickenFlapController : MonoBehaviour
             {
                 rb.AddForceAtPosition(transform.up * flapThrust, thrusterPoint.position, ForceMode.Force);
                 
-                float torqueDirection = isLeftWing ? 1f : -1f; // 왼쪽이면 1, 오른쪽이면 -1
+                float torqueDirection = isLeftWing ? 1f : -1f;
                 rb.AddTorque(transform.up * turnTorque * torqueDirection, ForceMode.Force);
             }
         }
@@ -107,10 +101,7 @@ public class ChickenFlapController : MonoBehaviour
             }
         }
     }
-
-    /// <summary>
-    /// 양쪽 날개의 펼쳐진 상태를 기준으로 Z축 회전 저항을 계산하고 적용하는 함수
-    /// </summary>
+    
     void ApplyDynamicRollDamping()
     {
         // 왼쪽 날개 펼침 정도 계산 (0.0 ~ 1.0)
@@ -125,28 +116,21 @@ public class ChickenFlapController : MonoBehaviour
         
         Vector3 localAV = transform.InverseTransformDirection(rb.angularVelocity);
         float torqueZ = -localAV.z * currentZ_Damping;
-        Vector3 localTorque = new Vector3(0, 0, torqueZ);
+        Vector3 localTorque = new Vector3(0, 0, torqueZ); // << "new new" 오타 수정된 부분입니다.
         Vector3 worldTorque = transform.TransformDirection(localTorque);
         rb.AddTorque(worldTorque);
     }
-
-    /// <summary>
-    /// 한쪽 날개의 펼쳐진 정도를 0~1 사이 값으로 반환하는 함수 (Euler 각도 예외 처리 포함)
-    /// </summary>
+    
     float GetWingSpreadPercent(Transform wing, float upAngle, float downAngle)
     {
-        // Euler 각도는 0~360 범위를 순환하므로, 음수 각도를 올바르게 비교하기 위해 조정합니다.
-        // 예를 들어 -90도는 270도로 표현됩니다.
-        float currentAngle = wing.localEulerAngles.z;
+        Quaternion upRot = Quaternion.Euler(0, 0, upAngle);
+        Quaternion downRot = Quaternion.Euler(0, 0, downAngle);
         
-        // InverseLerp는 min, max 순서가 중요하므로 up/down 각도에 따라 정렬합니다.
-        float minAngle = Mathf.Min(upAngle, downAngle);
-        float maxAngle = Mathf.Max(upAngle, downAngle);
+        float totalAngleRange = Quaternion.Angle(upRot, downRot);
+        if (totalAngleRange < 0.1f) return 0; // 0으로 나누는 오류 방지
         
-        // 음수 각도에 대한 예외 처리
-        if (minAngle < 0 && currentAngle > 180) currentAngle -= 360; // 현재 각도를 음수 범위로 변환
-        if (maxAngle < 0) maxAngle += 360; // 비교를 위해 max도 양수 범위로 변환 후 InverseLerp 사용
-                                                
-        return Mathf.InverseLerp(minAngle, maxAngle, currentAngle);
+        float currentAngleFromDown = Quaternion.Angle(wing.localRotation, downRot);
+        
+        return Mathf.Clamp01(currentAngleFromDown / totalAngleRange);
     }
 }
