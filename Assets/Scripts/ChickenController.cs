@@ -29,14 +29,17 @@ public class ChickenFlapController : MonoBehaviour
     [Tooltip("날개를 올릴 때 가해지는 고정적인 저항력 (아래 방향)")]
     public float upstrokeResistance = 50f;
 
+    // [추가] 회전력을 위한 새로운 Header와 변수
+    [Header("5. 회전력(Torque) 설정")]
+    [Tooltip("한쪽 날갯짓 시 가해지는 Y축 회전 힘")]
+    public float turnTorque = 100f;
+
     private Rigidbody rb;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
-
-    // [삭제] 속도 계산에 필요했던 Start() 함수와 변수들 모두 삭제
 
     void Update()
     {
@@ -55,6 +58,9 @@ public class ChickenFlapController : MonoBehaviour
                 if (Quaternion.Angle(leftWing.localRotation, targetRotation) > 1f)
                 {
                     rb.AddForceAtPosition(transform.up * flapThrust, leftThrusterPoint.position, ForceMode.Force);
+                    
+                    // [추가!] 왼쪽 날갯짓 시 Y축 양의 방향으로 회전력을 줌
+                    rb.AddTorque(transform.up * turnTorque, ForceMode.Force);
                 }
             }
             else // 키를 뗐을 때
@@ -79,6 +85,9 @@ public class ChickenFlapController : MonoBehaviour
                 if (Quaternion.Angle(rightWing.localRotation, targetRotation) > 1f)
                 {
                     rb.AddForceAtPosition(transform.up * flapThrust, rightThrusterPoint.position, ForceMode.Force);
+                    
+                    // [추가!] 오른쪽 날갯짓 시 Y축 음의 방향으로 회전력을 줌
+                    rb.AddTorque(-transform.up * turnTorque, ForceMode.Force);
                 }
             }
             else
