@@ -29,7 +29,9 @@ public class ChickenFlapController : MonoBehaviour
     public float turnTorque = 100f;
 
     [Header("6. 동적 Z축 저항 (Roll Damping)")]
-    public float maxZAxisTorqueDamping = 10f;
+    [Tooltip("Z축(좌우 기울기)에 대한 기본 회전 저항입니다.")]
+    public float baseZDrag = 1f;
+    public float maxZAxisTorqueDamping = 10f; // << 누락되었던 변수 선언입니다.
     
     private Rigidbody rb;
     private bool isAKeyPressed;
@@ -112,10 +114,11 @@ public class ChickenFlapController : MonoBehaviour
 
         // 총 저항력 결정 및 적용
         float totalSpreadPercent = Mathf.Clamp01(leftSpreadPercent + rightSpreadPercent);
-        float currentZ_Damping = maxZAxisTorqueDamping * totalSpreadPercent;
+        float dynamicZ_Damping = maxZAxisTorqueDamping * totalSpreadPercent;
+        float totalZ_Damping = baseZDrag + dynamicZ_Damping;
         
         Vector3 localAV = transform.InverseTransformDirection(rb.angularVelocity);
-        float torqueZ = -localAV.z * currentZ_Damping;
+        float torqueZ = -localAV.z * totalZ_Damping;
         Vector3 localTorque = new Vector3(0, 0, torqueZ); // << "new new" 오타 수정된 부분입니다.
         Vector3 worldTorque = transform.TransformDirection(localTorque);
         rb.AddTorque(worldTorque);
@@ -134,3 +137,4 @@ public class ChickenFlapController : MonoBehaviour
         return Mathf.Clamp01(currentAngleFromDown / totalAngleRange);
     }
 }
+
