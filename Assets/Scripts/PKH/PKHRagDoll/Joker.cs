@@ -40,12 +40,11 @@ public class Joker : MonoBehaviour
 
     private Coroutine ragDollCoroutine;
 
-
     private Vector3 divingDir;
 
     private void Awake()
     {
-        if(Instance == null) Instance = this;
+        if (Instance == null) Instance = this;
 
 
         anim = GetComponent<Animator>();
@@ -63,7 +62,7 @@ public class Joker : MonoBehaviour
 
         joints = GetComponentsInChildren<CharacterJoint>();
 
-       DisableRagdoll();
+        DisableRagdoll();
     }
 
 
@@ -74,7 +73,6 @@ public class Joker : MonoBehaviour
 
     private void FixedUpdate()
     {
-
         if (isAttack)
         {
 
@@ -196,7 +194,7 @@ public class Joker : MonoBehaviour
     // 다시 레그돌 실행
     private IEnumerator ResetRagDoll()
     {
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
         DisableRagdoll();
     }
 
@@ -224,7 +222,7 @@ public class Joker : MonoBehaviour
             dir = (upDivingOffset + targetPos.position);
             dir = (dir - transform.position).normalized;
 
-            spineRigid.AddForce(dir * 150f, ForceMode.Impulse);
+            spineRigid.AddForce(dir * 175f, ForceMode.Impulse);
         }
         else
         {
@@ -234,37 +232,28 @@ public class Joker : MonoBehaviour
             dir = (downDivingOffset + targetPos.position);
             dir = (dir - transform.position).normalized;
 
-            legRigid.AddForce(dir * 150f, ForceMode.Impulse);
+            legRigid.AddForce(dir * 175f, ForceMode.Impulse);
         }
 
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(2f);
+        isAttack = false;
 
         DisableRagdoll();
 
-        Debug.Log("이제 일어나기");
+        //Debug.Log("이제 일어나기");
 
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(!isRagDoll && collision.gameObject.CompareTag("Obstacle"))
+        if (isAttack) return;
+
+        if(collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Enemy"))
         {
-            Rigidbody obsRigid = collision.gameObject.GetComponent<Rigidbody>();
-            obsRigid.freezeRotation = false;
-
-            Vector3 dir = (transform.position - obsRigid.position).normalized;
-            obsRigid.AddForce(dir * rb.linearVelocity.magnitude, ForceMode.VelocityChange);
-
-            // 레그돌 실행
-            EnableRagdoll();
-            rb.AddForce(-dir * rb.linearVelocity.magnitude, ForceMode.VelocityChange);
-
-            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-            ragDollCoroutine = StartCoroutine(ResetRagDoll());
-        }
-        else if(collision.gameObject.CompareTag("Ball"))
-        {
-            EnableRagdoll();
+            if(!isRagDoll)
+            {
+                EnableRagdoll();
+            }
 
             Vector3 dir = transform.position - collision.gameObject.transform.position;
             dir.Normalize();
