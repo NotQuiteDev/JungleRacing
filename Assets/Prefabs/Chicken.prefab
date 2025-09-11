@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8469546235350550382}
   m_Layer: 0
-  m_Name: RW_Thrust
+  m_Name: LW_Thrust
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -336,14 +336,16 @@ MonoBehaviour:
   rightWingDownAngleZ: -10
   rightFlapDownTension: 5
   rightFlapUpTension: 20
-  leftThrusterPoint: {fileID: 6874436876546765087}
-  rightThrusterPoint: {fileID: 8469546235350550382}
+  leftThrusterPoint: {fileID: 8469546235350550382}
+  rightThrusterPoint: {fileID: 6874436876546765087}
   flapThrust: 10
   upstrokeResistance: 3
   turnTorque: 3
-  baseAngularDrag: {x: 0.5, y: 0.5, z: 1}
+  baseAngularDrag: {x: 0.5, y: 0.5, z: 10}
   maxZAxisTorqueDamping: 20
   pitchTorque: 1
+  minY_LinearDrag: 0.001
+  maxY_LinearDrag: 1
 --- !u!1 &5265517591042932389
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,7 +356,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6874436876546765087}
   m_Layer: 0
-  m_Name: LW_Thrust
+  m_Name: RW_Thrust
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -28,17 +28,23 @@ public class ChickenFlapController : MonoBehaviour
     [Header("5. 회전력(Torque) 설정")]
     public float turnTorque = 100f;
     
-    // ================== [ 수정된 부분 시작 ] ==================
     [Header("6. 각축별 회전 저항 (Angular Damping)")]
     [Tooltip("기본 회전 저항입니다. X(Pitch), Y(Yaw), Z(Roll) 순서입니다.")]
     public Vector3 baseAngularDrag = new Vector3(0.5f, 0.5f, 1f);
 
     [Tooltip("날개를 펼쳤을 때 Z축(좌우 기울기)에 추가로 적용될 최대 회전 저항입니다.")]
     public float maxZAxisTorqueDamping = 10f;
-    // ================== [ 수정된 부분 끝 ] ==================
     
     [Header("7. 앞/뒤 기울기(Pitch) 설정")]
     public float pitchTorque = 50f;
+
+    // ================== [ 새로 추가된 부분 시작 ] ==================
+    [Header("8. 동적 양력 (Y축 저항 조절)")]
+    [Tooltip("날개를 접었을 때(날갯짓 시)의 Y축 공기 저항 계수입니다.")]
+    public float minY_LinearDrag = 0.1f;
+    [Tooltip("날개를 최대로 펼쳤을 때(글라이딩 시)의 Y축 공기 저항 계수입니다. 이 값이 클수록 천천히 떨어집니다.")]
+    public float maxY_LinearDrag = 4f;
+    // ================== [ 새로 추가된 부분 끝 ] ==================
 
     private Rigidbody rb;
     private bool isAKeyPressed;
@@ -80,12 +86,11 @@ public class ChickenFlapController : MonoBehaviour
         HandlePitching();
         
         // 3. 커스텀 회전 저항(안정장치) 적용
-        ApplyCustomAngularDamping(); // << 함수 이름 변경
-    }
+        ApplyCustomAngularDamping();
 
-    // ==========================================================================================
-    // 로직을 명확하게 분리하기 위한 도우미 함수들
-    // ==========================================================================================
+        // 4. 날개 펼침에 따른 동적 양력(Y축 저항) 적용 << 새로 추가된 함수 호출
+        HandleDynamicLift();
+    }
 
     void HandleWingRotation(Transform wing, bool isKeyPressed, float upAngle, float downAngle, float upTension, float downTension)
     {
@@ -104,7 +109,7 @@ public class ChickenFlapController : MonoBehaviour
             {
                 rb.AddForceAtPosition(transform.up * flapThrust, thrusterPoint.position, ForceMode.Force);
 
-                float torqueDirection = isLeftWing ? -1f : 1f;
+                float torqueDirection = isLeftWing ? 1f : -1f;
                 rb.AddTorque(transform.up * turnTorque * torqueDirection, ForceMode.Force);
             }
         }
@@ -131,42 +136,51 @@ public class ChickenFlapController : MonoBehaviour
         }
     }
     
-    // ================== [ 수정된 함수 시작 ] ==================
     void ApplyCustomAngularDamping()
     {
         // --- Z축(Roll)에 대한 동적 저항 계산 (기존 로직) ---
-        // 왼쪽 날개 펼침 정도 계산 (0.0 ~ 1.0)
         float leftSpreadPercent = GetWingSpreadPercent(leftWing, leftWingUpAngleZ, leftWingDownAngleZ);
-
-        // 오른쪽 날개 펼침 정도 계산 (0.0 ~ 1.0)
         float rightSpreadPercent = GetWingSpreadPercent(rightWing, rightWingUpAngleZ, rightWingDownAngleZ);
-
-        // 총 펼침 정도에 따른 동적 Z축 저항력 결정
         float totalSpreadPercent = Mathf.Clamp01(leftSpreadPercent + rightSpreadPercent);
         float dynamicZ_Damping = maxZAxisTorqueDamping * totalSpreadPercent;
 
         // --- 각 축별 최종 저항 계수 계산 ---
-        // X, Y 축은 기본 저항만 사용
         float totalDampingX = baseAngularDrag.x;
         float totalDampingY = baseAngularDrag.y;
-        // Z 축은 기본 저항에 동적 저항을 더함
         float totalDampingZ = baseAngularDrag.z + dynamicZ_Damping;
 
         // --- 계산된 저항을 토크로 변환하여 적용 ---
-        // 현재 회전 속도를 로컬 좌표 기준으로 변환
         Vector3 localAV = transform.InverseTransformDirection(rb.angularVelocity);
-        
-        // 각 축의 회전 속도에 반대 방향으로 저항 토크 계산
         float torqueX = -localAV.x * totalDampingX;
         float torqueY = -localAV.y * totalDampingY;
         float torqueZ = -localAV.z * totalDampingZ;
 
-        // 계산된 로컬 토크를 다시 월드 좌표 기준으로 변환하여 적용
         Vector3 localTorque = new Vector3(torqueX, torqueY, torqueZ);
         Vector3 worldTorque = transform.TransformDirection(localTorque);
         rb.AddTorque(worldTorque);
     }
-    // ================== [ 수정된 함수 끝 ] ==================
+
+    // ================== [ 새로 추가된 함수 시작 ] ==================
+    void HandleDynamicLift()
+    {
+        // 1. 평균 날개 펼침 정도 계산 (0.0: 접힌 상태, 1.0: 완전히 펼친 상태)
+        // GetWingSpreadPercent는 날개가 펼쳐진 정도(UpAngle에 가까운 정도)를 0~1로 반환합니다.
+        float leftSpreadRatio = GetWingSpreadPercent(leftWing, leftWingUpAngleZ, leftWingDownAngleZ);
+        float rightSpreadRatio = GetWingSpreadPercent(rightWing, rightWingUpAngleZ, rightWingDownAngleZ);
+        float averageSpreadRatio = (leftSpreadRatio + rightSpreadRatio) / 2f;
+
+        // 2. 날개 펼침 정도에 따라 현재 프레임의 Y축 저항 계수를 계산
+        // Lerp(최소, 최대, 비율) 함수를 사용하여 부드럽게 변화하는 값을 얻음
+        // 이제 spreadRatio가 1(펼침)일 때 maxY_LinearDrag가 적용됩니다.
+        float currentY_Drag = Mathf.Lerp(minY_LinearDrag, maxY_LinearDrag, averageSpreadRatio);
+
+        // 3. Y축 속도에 반대되는 저항 힘을 계산하여 적용 (Y축 Linear Damping 수동 구현)
+        float yVelocity = rb.linearVelocity.y;
+        Vector3 resistanceForce = new Vector3(0, -yVelocity * currentY_Drag, 0);
+
+        rb.AddForce(resistanceForce);
+    }
+    // ================== [ 새로 추가된 함수 끝 ] ==================
 
     float GetWingSpreadPercent(Transform wing, float upAngle, float downAngle)
     {
