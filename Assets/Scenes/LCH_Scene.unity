@@ -1043,7 +1043,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 1
+  m_AngularDrag: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1142,7 +1142,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1899914264}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.14642838, y: 0, z: 0, w: 0.9892213}
   m_LocalPosition: {x: 24.92, y: 2, z: -35.18}
   m_LocalScale: {x: 2, y: 1.5, z: 2}
   m_ConstrainProportionsScale: 0
@@ -1153,7 +1153,7 @@ Transform:
   - {fileID: 1494213749}
   - {fileID: 382072739}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -16.84, y: 0, z: 0}
 --- !u!114 &1899914271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1178,9 +1178,12 @@ MonoBehaviour:
   rightFlapUpTension: 20
   leftThrusterPoint: {fileID: 382072739}
   rightThrusterPoint: {fileID: 1494213749}
-  flapThrust: 0.5
-  upstrokeResistance: 0.1
-  turnTorque: 0.5
+  flapThrust: 10
+  upstrokeResistance: 3
+  turnTorque: 3
+  baseZDrag: 10
+  maxZAxisTorqueDamping: 20
+  pitchTorque: 1
 --- !u!1 &1963671342
 GameObject:
   m_ObjectHideFlags: 0
