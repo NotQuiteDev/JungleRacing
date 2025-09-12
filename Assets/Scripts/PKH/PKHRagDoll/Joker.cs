@@ -83,9 +83,6 @@ public class Joker : MonoBehaviour
     {
         StartCoroutine(Init());
     }
-
-
-
     private IEnumerator Init()
     {
         DisableRagdoll();
@@ -138,7 +135,6 @@ public class Joker : MonoBehaviour
             rb.MoveRotation(targetRot);
         }
     }
-
 
     private void Update()
     {
@@ -234,6 +230,7 @@ public class Joker : MonoBehaviour
 
     private void Attack()
     {
+        if (PenaltyManager.Instance.isComplete) return;
         if (isAttack) return;
 
         if (attackCoroutine != null) StopCoroutine(attackCoroutine);
@@ -291,15 +288,6 @@ public class Joker : MonoBehaviour
 
             if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
             ragDollCoroutine = StartCoroutine(ResetRagDoll());
-        }
-
-        if (isKicker)
-        {
-
-        }
-        else
-        {
-            
         }
     }
 }

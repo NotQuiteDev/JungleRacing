@@ -128,8 +128,8 @@ public class Kicker : MonoBehaviour
         rb.isKinematic = false;
         isRagDoll = false;
         anim.enabled = true;
-        anim.Rebind();
-        anim.Update(0f);
+        //anim.Rebind();
+        //anim.Update(0f);
 
         if (isCeremony)
         {
@@ -360,7 +360,6 @@ public class Kicker : MonoBehaviour
 
         yield return new WaitForSeconds(2.5f);
 
-        isDiving = false;
         DisableRagdoll();
     }
 
@@ -406,13 +405,6 @@ public class Kicker : MonoBehaviour
             transform.position = PenaltyManager.Instance.ballPos;
             transform.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
         }
-        /*else if(defenceCeremony)
-        {
-            rb.position = PenaltyManager.Instance.goalKeeperPos;
-            rb.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
-            transform.position = PenaltyManager.Instance.goalKeeperPos;
-            transform.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
-        }*/
 
         yield return null;
 
@@ -429,7 +421,7 @@ public class Kicker : MonoBehaviour
     {
         if (PenaltyManager.Instance.isComplete) return;
 
-        if (isRagDoll || isKick || isDiving) return; // 실행중에는 차단
+        if (isRagDoll || isKick) return; // 실행중에는 차단
 
         if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Player"))
         {
