@@ -80,25 +80,29 @@ public class SoccerPlayerAI : MonoBehaviour
     {
         AIState previousState = currentState;
 
-        float fieldCenterZ = (myGoal.position.z + opponentGoal.position.z) / 2f;
-        bool isBallInMyHalf;
-        if (myGoal.position.z > opponentGoal.position.z)
-        {
-            isBallInMyHalf = ball.position.z > fieldCenterZ;
-        }
-        else
-        {
-            isBallInMyHalf = ball.position.z < fieldCenterZ;
-        }
+        // 1. 경기장의 중앙 지점을 계산합니다.
+        Vector3 fieldCenter = (myGoal.position + opponentGoal.position) / 2f;
+        // 2. 경기장 중앙에서 '우리 골대'를 향하는 방향 벡터를 구합니다. 이것이 "우리 진영"의 기준이 됩니다.
+        Vector3 myHalfDirection = (myGoal.position - fieldCenter).normalized;
+        // 3. 경기장 중앙에서 '공'을 향하는 방향 벡터를 구합니다.
+        Vector3 ballDirectionFromCenter = (ball.position - fieldCenter).normalized;
 
+        // 4. 내적(Dot Product)을 사용해 두 벡터가 같은 방향을 향하는지 확인합니다.
+        // 결과가 양수(+)이면 공이 우리 진영에 있다는 뜻입니다.
+        bool isBallInMyHalf = Vector3.Dot(myHalfDirection, ballDirectionFromCenter) > 0;
+
+        // 5. 최종 상태를 결정합니다.
         if (isBallInMyHalf)
         {
+            // 공이 우리 진영에 있다면, 무조건 수비 상태가 됩니다.
             currentState = AIState.DEFENDING;
         }
-        else
+        else // 공이 상대 진영에 있다면
         {
+            // 기존처럼 공과의 거리를 비교하여 공격/수비를 결정합니다.
             float myDistanceToBall = Vector3.Distance(transform.position, ball.position);
             float opponentDistanceToBall = Vector3.Distance(opponent.position, ball.position);
+
             if (myDistanceToBall <= opponentDistanceToBall)
             {
                 currentState = AIState.ATTACKING;
@@ -132,18 +136,17 @@ public class SoccerPlayerAI : MonoBehaviour
     {
         Vector3 directionToGoal = (opponentGoal.position - ball.position).normalized;
         Vector3 finalTargetPosition = ball.position - directionToGoal * attackOffset;
-        bool isGoalInNegativeZ = opponentGoal.position.z < myGoal.position.z;
-        bool isBehindTheBall;
-        if (isGoalInNegativeZ) { isBehindTheBall = transform.position.z > ball.position.z; }
-        else { isBehindTheBall = transform.position.z < ball.position.z; }
+        
+        // Dot Product를 사용하여 방향과 관계없이 '공 뒤에 있는지'를 판단하는 것이 더 범용적입니다.
+        Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
+        bool isBehindTheBall = Vector3.Dot(directionToGoal, directionFromMeToBall) < 0; // 내적이 음수면 서로 반대 방향 = 올바른 위치
 
-        if (isBehindTheBall)
+        if (!isBehindTheBall) // 올바른 위치가 아니라면 (공을 등지고 있다면)
         {
             Vector3 sideDirection = Vector3.Cross(directionToGoal, Vector3.up).normalized;
-            Vector3 directionToBall = (transform.position - ball.position).normalized;
-
-            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
-            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
+            Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
+            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
+            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
             return (Vector3.Distance(transform.position, leftFlankPosition) < Vector3.Distance(transform.position, rightFlankPosition)) ? leftFlankPosition : rightFlankPosition;
         }
         else 
@@ -162,10 +165,9 @@ public class SoccerPlayerAI : MonoBehaviour
         if (isChasingDangerously)
         {
             Vector3 sideDirection = Vector3.Cross(directionToMyGoal, Vector3.up).normalized;
-            Vector3 directionToBall = (transform.position - ball.position).normalized;
-
-            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
-            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
+            Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
+            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
+            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
             return (Vector3.Distance(transform.position, leftFlankPosition) < Vector3.Distance(transform.position, rightFlankPosition)) ? leftFlankPosition : rightFlankPosition;
         }
         else
@@ -246,7 +248,7 @@ public class SoccerPlayerAI : MonoBehaviour
                 Vector3 dir = (transform.position - collision.contacts[0].point).normalized;
                 foreach (var r in ragsRigid)
                 {
-                    r.AddForce(dir * 20, ForceMode.Impulse);
+                    //r.AddForce(dir * 1, ForceMode.Impulse);
                 }
                 if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
                 ragDollCoroutine = StartCoroutine(ResetRagDoll());
@@ -280,20 +282,17 @@ public class SoccerPlayerAI : MonoBehaviour
             Gizmos.color = Color.green;
             Gizmos.DrawLine(ball.position, opponentGoal.position);
 
-            bool isGoalInNegativeZ = opponentGoal.position.z < myGoal.position.z;
-            bool isBehindTheBall;
-            if (isGoalInNegativeZ) { isBehindTheBall = transform.position.z > ball.position.z; }
-            else { isBehindTheBall = transform.position.z < ball.position.z; }
+            Vector3 directionToGoal = (opponentGoal.position - ball.position).normalized;
+            Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
+            bool isBehindTheBall = Vector3.Dot(directionToGoal, directionFromMeToBall) < 0;
 
-            if (isBehindTheBall)
+            if (!isBehindTheBall)
             {
                 Gizmos.color = Color.cyan;
-                Vector3 directionToGoal = (opponentGoal.position - ball.position).normalized;
                 Vector3 sideDirection = Vector3.Cross(directionToGoal, Vector3.up).normalized;
-                Vector3 directionToBall = (transform.position - ball.position).normalized;
-
-                Vector3 leftFlank = ball.position + (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
-                Vector3 rightFlank = ball.position - (sideDirection * flankOffset) + (directionToBall * flankOffset * 0.5f);
+                Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
+                Vector3 leftFlank = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
+                Vector3 rightFlank = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
 
                 Gizmos.DrawWireSphere(leftFlank, 0.3f);
                 Gizmos.DrawWireSphere(rightFlank, 0.3f);
@@ -305,7 +304,7 @@ public class SoccerPlayerAI : MonoBehaviour
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(ball.position, myGoal.position);
-            
+
             Vector3 directionToMyGoal = (myGoal.position - ball.position).normalized;
             Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
             bool isChasingDangerously = Vector3.Dot(directionToMyGoal, directionFromMeToBall) > 0;

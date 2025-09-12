@@ -33,11 +33,16 @@ public class PlayerRagdollController : MonoBehaviour
     private bool isGround = false;
     private bool isAttack = false;
     
-
     // Status
     [SerializeField] private float speed = 5f;
     private float curAttackDelay = 0f;
     private float attackDelay = 2f;
+    
+    // ===== [ 이 부분을 추가했습니다 ] =====
+    [Header("Ragdoll Settings")]
+    [Tooltip("공이 이 속도(m/s) 이상으로 부딪혀야 래그돌이 활성화됩니다.")]
+    public float ballSpeedRagdollThreshold = 10f;
+    // ===================================
 
     private Coroutine ragDollCoroutine;
 
@@ -135,7 +140,8 @@ public class PlayerRagdollController : MonoBehaviour
         anim.enabled = false;
         foreach(var j in joints) { j.enableCollision = true; }
         foreach(var c in ragColls) { c.enabled = true; }
-        foreach (var r in ragsRigid) { r.linearVelocity = Vector3.zero; r.detectCollisions = true; r.useGravity = true; }
+        // 넘어질 때 현재 플레이어의 속도를 래그돌이 이어받도록 수정하면 더 자연스러울 수 있습니다.
+        foreach (var r in ragsRigid) { r.linearVelocity = rb.linearVelocity; r.detectCollisions = true; r.useGravity = true; }
         rb.detectCollisions = false;
         rb.useGravity = false;
         col.enabled = false;
@@ -177,6 +183,7 @@ public class PlayerRagdollController : MonoBehaviour
         Debug.Log("이제 일어나기");
     }
 
+    // ================== [ 수정된 OnCollisionEnter 함수 ] ==================
     private void OnCollisionEnter(Collision collision)
     {
         if(!isRagDoll && collision.gameObject.CompareTag("Obstacle"))
@@ -192,15 +199,33 @@ public class PlayerRagdollController : MonoBehaviour
         }
         else if(collision.gameObject.CompareTag("Ball"))
         {
-            EnableRagdoll();
-            Vector3 dir = transform.position - collision.gameObject.transform.position;
-            dir.Normalize();
-            foreach (var r in ragsRigid)
+            // 1. 부딪힌 공의 Rigidbody를 가져옵니다.
+            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (ballRb == null) return; // 공에 Rigidbody가 없으면 무시
+
+            // 2. 공의 현재 속력을 계산합니다.
+            float ballSpeed = ballRb.linearVelocity.magnitude;
+
+            // 3. 공의 속력이 우리가 설정한 역치(threshold)보다 클 때만 래그돌을 활성화합니다.
+            if (ballSpeed >= ballSpeedRagdollThreshold)
             {
-                r.AddForce(dir * 20, ForceMode.Impulse);
+                Debug.Log($"플레이어, 공과 충돌! 공 속도: {ballSpeed:F2} m/s. 래그돌을 활성화합니다.");
+
+                EnableRagdoll();
+                Vector3 dir = transform.position - collision.gameObject.transform.position;
+                dir.Normalize();
+                foreach (var r in ragsRigid)
+                {
+                    r.AddForce(dir * 5, ForceMode.Impulse);
+                }
+                if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+                ragDollCoroutine = StartCoroutine(ResetRagDoll());
             }
-            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-            ragDollCoroutine = StartCoroutine(ResetRagDoll());
+            else
+            {
+                Debug.Log($"플레이어, 공과 충돌했지만 속도가 느립니다. (속도: {ballSpeed:F2} m/s)");
+            }
         }
     }
+    // ====================================================================
 }
