@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Line
   - AI
+  - SafeZone
   layers:
   - Default
   - TransparentFX
