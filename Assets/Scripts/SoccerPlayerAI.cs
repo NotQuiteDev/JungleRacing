@@ -32,6 +32,12 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     public float tackleForce = 150f;
     public float tackleAimLeadDistance = 2.0f;
 
+    [Header("Defensive Tackle Settings (수비형 태클 설정)")]
+    [Tooltip("AI가 수비형 태클을 사용하는지 여부입니다.")]
+    public bool enableDefensiveTackle = true;
+    [Tooltip("플레이어가 이 반경 안에 들어오고 특정 조건을 만족하면 태클을 시도합니다.")]
+    public float defensiveTackleRadius = 3.5f;
+
     [Header("Ragdoll Settings (래그돌 설정)")]
     public float ballSpeedRagdollThreshold = 5f;
     public float ballCollisionForce = 5f;
@@ -115,9 +121,35 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
         if (!isRagDoll && currentState == AIState.ATTACKING)
         {
             float distanceToBall = Vector3.Distance(transform.position, ball.position);
+            
+            // 1순위: 슛 각도가 나왔을 때 공을 향한 공격형 태클
             if (IsShotAligned() && distanceToBall <= tackleDistance)
             {
-                Tackle();
+                Tackle(ball);
+            }
+            // 2순위: 플레이어가 위협적일 때 플레이어를 향한 수비형 태클
+            else if (enableDefensiveTackle && opponent != null)
+            {
+                // 조건 1: 플레이어가 나보다 공에 더 가까운가?
+                float playerDistToBall = Vector3.Distance(opponent.position, ball.position);
+                if (playerDistToBall < distanceToBall)
+                {
+                    // 조건 2: 그 플레이어가 내 주변 반경 안에 있는가?
+                    float distToPlayer = Vector3.Distance(transform.position, opponent.position);
+                    if (distToPlayer <= defensiveTackleRadius)
+                    {
+                        // ===== [ 추가된 조건 3 ] =====
+                        // 그리고 플레이어가 나보다 '우리 골대'에 더 가까워 위협적인가?
+                        float playerDistToMyGoal = Vector3.Distance(opponent.position, myGoal.position);
+                        float myDistToMyGoal = Vector3.Distance(transform.position, myGoal.position);
+                        if (playerDistToMyGoal < myDistToMyGoal)
+                        {
+                            // 모든 조건 만족! 플레이어에게 태클!
+                            Tackle(opponent);
+                        }
+                        // ============================
+                    }
+                }
             }
         }
     }
@@ -127,7 +159,32 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     Vector3 GetAttackingPosition() { if (IsShotAligned()) { return ball.position; } else { Vector3 attackDirection = (opponentGoal.position - ball.position).normalized; Vector3 orbitPosition = ball.position - attackDirection * orbitDistance; return orbitPosition; } }
     Vector3 GetDefendingPosition() { return transform.position; }
     private bool IsShotAligned() { if (opponentGoal == null || ball == null) return false; Vector3 aiPos = new Vector3(transform.position.x, 0, transform.position.z); Vector3 ballPos = new Vector3(ball.position.x, 0, ball.position.z); Vector3 goalPos = new Vector3(opponentGoal.position.x, 0, opponentGoal.position.z); Vector3 shotDirection = (ballPos - aiPos).normalized; Vector3 vectorToGoal = goalPos - aiPos; float projection = Vector3.Dot(vectorToGoal, shotDirection); if (projection < 0) return false; Vector3 closestPointOnLine = aiPos + shotDirection * projection; float distanceFromLine = Vector3.Distance(closestPointOnLine, goalPos); return distanceFromLine <= shotTargetRadius; }
-    void Tackle() { Vector3 attackDirection = (opponentGoal.position - ball.position).normalized; Vector3 targetPoint = ball.position + attackDirection * tackleAimLeadDistance; Vector3 diveDirection = (targetPoint - transform.position).normalized; EnableRagdoll(); if (spineRigid != null) { spineRigid.AddForce(diveDirection * tackleForce, ForceMode.Impulse); } if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine); ragDollCoroutine = StartCoroutine(ResetRagDoll()); }
+    
+    void Tackle(Transform target) 
+    { 
+        Vector3 diveDirection;
+        if (target == ball)
+        {
+            // 공격형 태클: 공 너머의 상대 골대를 조준
+            Vector3 attackDirection = (opponentGoal.position - ball.position).normalized;
+            Vector3 targetPoint = ball.position + attackDirection * tackleAimLeadDistance;
+            diveDirection = (targetPoint - transform.position).normalized;
+        }
+        else
+        {
+            // 수비형 태클: 플레이어를 직접 조준
+            diveDirection = (target.position - transform.position).normalized;
+        }
+
+        EnableRagdoll(); 
+        if (spineRigid != null) 
+        { 
+            spineRigid.AddForce(diveDirection * tackleForce, ForceMode.Impulse); 
+        } 
+        if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine); 
+        ragDollCoroutine = StartCoroutine(ResetRagDoll()); 
+    }
+
     Vector3 FindClosestPointOnLineSegment(Vector3 lineStart, Vector3 lineEnd, Vector3 point) { Vector3 lineDirection = lineEnd - lineStart; float lineLengthSqr = lineDirection.sqrMagnitude; if (lineLengthSqr < 0.0001f) return lineStart; float t = Vector3.Dot(point - lineStart, lineDirection) / lineLengthSqr; t = Mathf.Clamp01(t); return lineStart + lineDirection * t; }
 
     // [추가된 부분] =======================================================
@@ -147,7 +204,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     /// <param name="impactForce">충격량</param>
     public void TriggerRagdollByImpact(Vector3 impactDirection, float impactForce)
     {
-        if (isRagDoll || isInvincible) return; // 이미 래그돌 상태면 무시
+        if (isRagDoll || isInvincible) return; // 이미 래그돌 상태거나 무적 상태면 무시
 
         Debug.Log("AI가 플레이어의 충격으로 래그돌이 됩니다!");
         EnableRagdoll();
@@ -184,7 +241,6 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     // [수정된 부분] =======================================================
     private void OnCollisionEnter(Collision collision)
     {
-        // 내가 '래그돌 상태'일 때 플레이어와 부딪혔는지 확인
         if (isRagDoll) return;
 
         // 아래는 기존의 '서 있을 때'의 충돌 로직
