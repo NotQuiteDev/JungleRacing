@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Obstacle
   - Ball
+  - Enemy
+  - Line
+  - AI
+  - SafeZone
   layers:
   - Default
   - TransparentFX
@@ -15,7 +19,7 @@ TagManager:
   - UI
   - Player
   - RagDoll
-  - 
+  - Enemy
   - 
   - 
   - 

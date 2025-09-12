@@ -152,7 +152,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxSteerAngle: 60
   forwardSpeed: 30
-  reverseSpeed: 10
+  reverseSpeed: 15
   brakeForce: 15
   gripFactor: 0.8
   turnSpeed: 2
