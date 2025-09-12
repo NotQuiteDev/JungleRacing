@@ -19,6 +19,11 @@ public class PlayerRagdollController : MonoBehaviour, IRagdollController
     private Collider col;
     private Collider[] ragColls;
 
+    [Tooltip("일어난 후 잠시 동안 다른 충격에 넘어지지 않는 무적 시간(초)입니다.")]
+    public float spawnInvincibilityDuration = 0.5f;
+    private bool isInvincible = false; // 현재 무적 상태인지 확인하는 내부 변수
+ 
+
     // Const
     private const string WALKANIM = "isWalk";
 
@@ -107,7 +112,7 @@ public class PlayerRagdollController : MonoBehaviour, IRagdollController
     /// <param name="impactForce">충격량</param>
     public void TriggerRagdollByImpact(Vector3 impactDirection, float impactForce)
     {
-        if (isRagDoll) return; // 이미 래그돌 상태면 무시
+        if (isRagDoll || isInvincible) return; // 이미 래그돌 상태면 무시
 
         Debug.Log("플레이어가 AI의 충격으로 래그돌이 됩니다!");
         EnableRagdoll();
@@ -121,7 +126,25 @@ public class PlayerRagdollController : MonoBehaviour, IRagdollController
     #endregion
     // ====================================================================
 
-    private void DisableRagdoll() { isRagDoll = false; Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0); transform.position = original; anim.enabled = true; foreach (var j in joints) { j.enableCollision = false; } foreach (var c in ragColls) { c.enabled = false; } foreach (var r in ragsRigid) { r.detectCollisions = false; r.useGravity = false; } rb.detectCollisions = true; rb.useGravity = true; rb.linearVelocity = Vector3.zero; col.enabled = true; isGround = false; }
+    private void DisableRagdoll()
+    {
+        isRagDoll = false;
+        Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0);
+        transform.position = original;
+        anim.enabled = true;
+        foreach (var j in joints) { j.enableCollision = false; }
+        foreach (var c in ragColls) { c.enabled = false; }
+        foreach (var r in ragsRigid) { r.detectCollisions = false; r.useGravity = false; }
+        rb.detectCollisions = true; rb.useGravity = true; rb.linearVelocity = Vector3.zero; col.enabled = true; isGround = false;
+
+        StartCoroutine(ResetInvincibility());
+    }
+    private IEnumerator ResetInvincibility()
+    {
+        isInvincible = true; // 무적 상태 시작
+        yield return new WaitForSeconds(spawnInvincibilityDuration);
+        isInvincible = false; // 설정된 시간이 지나면 무적 상태 해제
+    }
     private void EnableRagdoll() { isRagDoll = true; anim.enabled = false; foreach (var j in joints) { j.enableCollision = true; } foreach (var c in ragColls) { c.enabled = true; } foreach (var r in ragsRigid) { r.linearVelocity = rb.linearVelocity; r.detectCollisions = true; r.useGravity = true; } rb.detectCollisions = false; rb.useGravity = false; col.enabled = false; isGround = true; }
     private IEnumerator ResetRagDoll() { yield return new WaitForSeconds(2.5f); DisableRagdoll(); }
 
