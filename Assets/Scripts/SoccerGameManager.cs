@@ -130,11 +130,11 @@ public class SoccerGameManager : MonoBehaviour
 
         if (leftTeamScore > rightTeamScore)
         {
-            winnerMessage = "Left Team Wins!";
+            winnerMessage = "Player Wins!";
         }
         else if (rightTeamScore > leftTeamScore)
         {
-            winnerMessage = "Right Team Wins!";
+            winnerMessage = "A.I. Wins!";
         }
         else
         {

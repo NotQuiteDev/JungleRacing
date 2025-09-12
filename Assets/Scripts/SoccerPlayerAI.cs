@@ -50,7 +50,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     [Tooltip("일어난 후 잠시 동안 다른 충격에 넘어지지 않는 무적 시간(초)입니다.")]
     public float spawnInvincibilityDuration = 0.5f;
     private bool isInvincible = false; // 현재 무적 상태인지 확인하는 내부 변수
- 
+
 
     [Tooltip("공격 태클 시 슛의 부정확도(오차)입니다. 0이면 완벽하게 중앙으로 찹니다.")]
     public float shotInaccuracy = 0.1f;
@@ -70,6 +70,19 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     private Coroutine ragDollCoroutine;
     private Vector3 strategicTargetPosition;
     private Vector3 finalMoveTarget;
+    public Transform respawnPoint;
+
+    [Header("Map Bounds Settings (맵 경계 설정)")]
+    [Tooltip("AI가 활동할 안전 영역으로 사용할 트리거 콜라이더입니다.")]
+    public Collider safeZoneCollider;
+    [Tooltip("맵 경계를 벗어났는지 확인하는 주기(초)입니다.")]
+    public float boundsCheckInterval = 2.0f;
+
+    void Start()
+    {
+        // 게임이 시작되면 경계 확인 코루틴을 실행합니다.
+        StartCoroutine(CheckBoundsPeriodically());
+    }
 
     void Awake()
     {
@@ -124,7 +137,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
         if (!isRagDoll && currentState == AIState.ATTACKING)
         {
             float distanceToBall = Vector3.Distance(transform.position, ball.position);
-            
+
             // 1순위: 슛 각도가 나왔을 때 공을 향한 공격형 태클
             if (IsShotAligned() && distanceToBall <= tackleDistance)
             {
@@ -162,14 +175,14 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     Vector3 GetAttackingPosition() { if (IsShotAligned()) { return ball.position; } else { Vector3 attackDirection = (opponentGoal.position - ball.position).normalized; Vector3 orbitPosition = ball.position - attackDirection * orbitDistance; return orbitPosition; } }
     Vector3 GetDefendingPosition() { return transform.position; }
     private bool IsShotAligned() { if (opponentGoal == null || ball == null) return false; Vector3 aiPos = new Vector3(transform.position.x, 0, transform.position.z); Vector3 ballPos = new Vector3(ball.position.x, 0, ball.position.z); Vector3 goalPos = new Vector3(opponentGoal.position.x, 0, opponentGoal.position.z); Vector3 shotDirection = (ballPos - aiPos).normalized; Vector3 vectorToGoal = goalPos - aiPos; float projection = Vector3.Dot(vectorToGoal, shotDirection); if (projection < 0) return false; Vector3 closestPointOnLine = aiPos + shotDirection * projection; float distanceFromLine = Vector3.Distance(closestPointOnLine, goalPos); return distanceFromLine <= shotTargetRadius; }
-    
-    void Tackle(Transform target) 
-    { 
+
+    void Tackle(Transform target)
+    {
         Vector3 diveDirection;
         if (target == ball)
         {
             Debug.Log("AI가 공을 향해 [공격형 태클]을 시도합니다!");
-            
+
             // 1. 공에서 상대 골대를 향하는 기본 방향 계산
             Vector3 attackDirection = (opponentGoal.position - ball.position).normalized;
 
@@ -194,13 +207,13 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
             diveDirection = (target.position - transform.position).normalized;
         }
 
-        EnableRagdoll(); 
-        if (spineRigid != null) 
-        { 
-            spineRigid.AddForce(diveDirection * tackleForce, ForceMode.Impulse); 
-        } 
-        if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine); 
-        ragDollCoroutine = StartCoroutine(ResetRagDoll()); 
+        EnableRagdoll();
+        if (spineRigid != null)
+        {
+            spineRigid.AddForce(diveDirection * tackleForce, ForceMode.Impulse);
+        }
+        if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+        ragDollCoroutine = StartCoroutine(ResetRagDoll());
     }
 
     Vector3 FindClosestPointOnLineSegment(Vector3 lineStart, Vector3 lineEnd, Vector3 point) { Vector3 lineDirection = lineEnd - lineStart; float lineLengthSqr = lineDirection.sqrMagnitude; if (lineLengthSqr < 0.0001f) return lineStart; float t = Vector3.Dot(point - lineStart, lineDirection) / lineLengthSqr; t = Mathf.Clamp01(t); return lineStart + lineDirection * t; }
@@ -271,7 +284,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
             Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>(); if (ballRb == null) return; float ballSpeed = ballRb.linearVelocity.magnitude; if (ballSpeed >= ballSpeedRagdollThreshold) { EnableRagdoll(); Vector3 dir = transform.position - collision.gameObject.transform.position; dir.Normalize(); foreach (var r in ragsRigid) { r.AddForce(dir * ballCollisionForce, ForceMode.Impulse); } if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine); ragDollCoroutine = StartCoroutine(ResetRagDoll()); }
         }
     }
-        // [추가] '우편함' 역할을 할 Public 함수
+    // [추가] '우편함' 역할을 할 Public 함수
     public void HandleRagdollCollision(Collision collision)
     {
         if (collision.gameObject.CompareTag("Player"))
@@ -283,6 +296,69 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
                 Vector3 impactDirection = (collision.transform.position - transform.position).normalized;
                 opponentPlayer.TriggerRagdollByImpact(impactDirection, collisionTacklePower);
             }
+        }
+    }
+    
+    /// <summary>
+    /// 일정 주기마다 AI가 안전 영역 안에 있는지 확인하는 코루틴입니다.
+    /// </summary>
+    private IEnumerator CheckBoundsPeriodically()
+    {
+        // 게임이 실행되는 동안 무한 반복
+        while (true)
+        {
+            // 설정된 시간만큼 기다립니다.
+            yield return new WaitForSeconds(boundsCheckInterval);
+
+            if (safeZoneCollider == null)
+            {
+                Debug.LogError("Safe Zone Collider가 지정되지 않았습니다!");
+                // 코루틴을 멈춰서 더 이상 에러가 반복되지 않게 합니다.
+                yield break; 
+            }
+
+            // 래그돌 상태든 아니든 항상 존재하는 몸통(spineRigid)의 위치를 확인합니다.
+            Vector3 checkPosition = spineRigid.position;
+
+            // 몸통의 위치가 안전 영역 콜라이더의 경계(bounds) 안에 있는지 확인합니다.
+            bool isInside = safeZoneCollider.bounds.Contains(checkPosition);
+
+            if (isInside)
+            {
+                // 안에 있다면 디버그 로그 출력
+                Debug.Log($"[경계 확인] {gameObject.name}는 안전 영역 안에 있습니다.");
+            }
+            else
+            {
+                // 밖에 있다면 경고 로그를 출력하고 리셋 함수를 호출합니다.
+                Debug.LogWarning($"[경계 확인] {gameObject.name}는 안전 영역 밖에 있습니다! 리스폰합니다.");
+                ResetPositionAndState();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 캐릭터를 리스폰 위치로 옮기고 상태를 초기화합니다.
+    /// </summary>
+    private void ResetPositionAndState()
+    {
+        if (respawnPoint == null)
+        {
+            Debug.LogError("리스폰 위치(Respawn Point)가 지정되지 않았습니다!");
+            return;
+        }
+
+        transform.position = respawnPoint.position;
+        
+        if (isRagDoll)
+        {
+            DisableRagdoll();
+        }
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
     }
     // ====================================================================
