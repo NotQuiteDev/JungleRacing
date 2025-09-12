@@ -45,6 +45,8 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (PenaltyManager.Instance.isComplete) return;
+
         if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
             if (!isFirst) // 퍼스트 터치라면, 아마 플레이어나 AI가 먼저 닿을일은 없을듯
@@ -67,6 +69,7 @@ public class Ball : MonoBehaviour
 
     private void ResetBall()
     {
+        Debug.Log("골인 or 아웃");
         PenaltyManager.Instance.ChangeKicker();
     }
 }

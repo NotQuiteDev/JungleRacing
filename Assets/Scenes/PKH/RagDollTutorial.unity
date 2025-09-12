@@ -6460,11 +6460,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timerText: {fileID: 0}
   <ballPos>k__BackingField: {x: 0, y: 0, z: -12}
-  <kickerPos>k__BackingField: {x: 0, y: 0, z: 7}
+  <kickerPos>k__BackingField: {x: 0, y: 0, z: -16}
   <kickerRotate>k__BackingField: {x: 0, y: 0, z: 0}
-  <goalKeeperPos>k__BackingField: {x: 0, y: 0, z: -16}
+  <goalKeeperPos>k__BackingField: {x: 0, y: 0, z: 7}
   <goalKeeperRotate>k__BackingField: {x: 0, y: 180, z: 0}
   isPlayerKick: 0
+  isComplete: 0
 --- !u!1 &1376550938
 GameObject:
   m_ObjectHideFlags: 0

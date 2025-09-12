@@ -30,6 +30,8 @@ public class PenaltyManager : MonoBehaviour
     public bool isComplete = false;
 
 
+    private Coroutine changeCoroutine;
+
     private void Awake()
     {
         if(Instance == null) Instance = this;
@@ -40,7 +42,6 @@ public class PenaltyManager : MonoBehaviour
         curStateTimer += Time.deltaTime;
         if(curStateTimer >= stageTimer)
         {
-            kickComplete = true;
             ChangeKicker();
         }
     }
@@ -53,12 +54,15 @@ public class PenaltyManager : MonoBehaviour
         //kickComplete = true;
         curStateTimer = 0;
 
-        ChangeKickerEvent?.Invoke(this, isPlayerKick);
-        StartCoroutine(Complete());
+        if (changeCoroutine != null) StopCoroutine(changeCoroutine);
+        changeCoroutine = StartCoroutine(Complete());
     }
 
     private IEnumerator Complete()
     {
+        yield return null;
+        ChangeKickerEvent?.Invoke(this, isPlayerKick);
+
         yield return null;
         isComplete = false;
     }

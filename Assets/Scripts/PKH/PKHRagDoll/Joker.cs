@@ -63,8 +63,10 @@ public class Joker : MonoBehaviour
 
     public void Test()
     {
-        DisableRagdoll();
-        rb.position = PenaltyManager.Instance.kickerPos;
+        PenaltyManager.Instance.ChangeKicker();
+
+        //DisableRagdoll();
+        //rb.position = PenaltyManager.Instance.kickerPos;
     }
 
     private void PenaltyManager_ChangeKickerEvent(object sender, bool e)
@@ -89,18 +91,25 @@ public class Joker : MonoBehaviour
         DisableRagdoll();
         anim.enabled = false;
         rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
 
-        if (isKicker) rb.position = PenaltyManager.Instance.kickerPos;
-        else rb.position = PenaltyManager.Instance.goalKeeperPos;
-
+        if (isKicker)
+        {
+            rb.position = PenaltyManager.Instance.kickerPos;
+            transform.position = PenaltyManager.Instance.kickerPos;
+        }
+        else
+        {
+            rb.position = PenaltyManager.Instance.goalKeeperPos;
+            transform.position = PenaltyManager.Instance.goalKeeperPos;
+        }
         yield return null;
 
+        rb.isKinematic = false;
         curAttackDelay = 0;
         isRagDoll = false;
         isAttack = false;
         anim.enabled = true;
-        rb.isKinematic = false;
-        rb.linearVelocity = Vector3.zero;
     }
 
     private void FixedUpdate()
@@ -273,7 +282,8 @@ public class Joker : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(isKicker)
+        if (PenaltyManager.Instance.isComplete) return;
+        if (isKicker)
         {
 
         }
