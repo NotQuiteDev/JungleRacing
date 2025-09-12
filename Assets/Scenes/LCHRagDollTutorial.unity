@@ -2776,7 +2776,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 732683163}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4018,7 +4018,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1104689843}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4085,6 +4085,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1104689843}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!54 &1118199794 stripped
+Rigidbody:
+  m_CorrespondingSourceObject: {fileID: 3375294241577341739, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+  m_PrefabInstance: {fileID: 6227250341187684596}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1148128113
 GameObject:
   m_ObjectHideFlags: 0
@@ -4234,7 +4239,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1160406356}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -4713,7 +4718,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1284838497}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5898,7 +5903,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1517377877}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -7192,7 +7197,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1768656474}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: e74e599350d39bc438ad21209656c5de, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -8157,13 +8162,29 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 645409481}
     - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: spineRigid
+      value: 
+      objectReference: {fileID: 1118199794}
+    - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
       propertyPath: flankOffset
       value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: tackleForce
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
       propertyPath: opponentGoal
       value: 
       objectReference: {fileID: 1575743801}
+    - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: orbitDistance
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: shotTargetRadius
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
       propertyPath: rushTriggerDistance
       value: 3
@@ -8180,7 +8201,8 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Untagged
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 19411426470554194, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
