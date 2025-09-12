@@ -45,6 +45,7 @@ public class Kicker : MonoBehaviour
     private bool isReady = false;
     private Coroutine ragDollCoroutine;
     private Coroutine divingCoroutine;
+    private Coroutine kickCoroutine;
 
 
     private bool isCeremony = false; // 세레머니 타임
@@ -82,6 +83,7 @@ public class Kicker : MonoBehaviour
     {
         if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
         if (divingCoroutine != null) StopCoroutine(divingCoroutine);
+        if (kickCoroutine != null) StopCoroutine(kickCoroutine);
 
         isKicker = !e;
 
@@ -96,6 +98,8 @@ public class Kicker : MonoBehaviour
     private IEnumerator Init()
     {
         DisableRagdoll();
+        yield return null;
+
         anim.enabled = false;
         rb.isKinematic = true;
         rb.linearVelocity = Vector3.zero;
@@ -103,8 +107,6 @@ public class Kicker : MonoBehaviour
         if (isKicker)
         {
             curKickDelay = kickDelay;
-            isReady = false;
-            isKick = false;
             rb.position = PenaltyManager.Instance.kickerPos;
             rb.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
             transform.position = PenaltyManager.Instance.kickerPos;
@@ -112,7 +114,6 @@ public class Kicker : MonoBehaviour
         }
         else
         {
-            isDiving = false;
             rb.position = PenaltyManager.Instance.goalKeeperPos;
             rb.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
             transform.position = PenaltyManager.Instance.goalKeeperPos;
@@ -120,11 +121,17 @@ public class Kicker : MonoBehaviour
         }
         yield return null;
 
+
+        isReady = false;
+        isKick = false;
+        isDiving = false;
         rb.isKinematic = false;
         isRagDoll = false;
         anim.enabled = true;
+        anim.Rebind();
+        anim.Update(0f);
 
-        if(isCeremony)
+        if (isCeremony)
         {
             isCeremony = false;
             kickCeremony = false;
@@ -179,13 +186,14 @@ public class Kicker : MonoBehaviour
 
     private void Update()
     {
+        if (PenaltyManager.Instance.isGameEnd) return;
         if (isCeremony) return;
 
         if (PenaltyManager.Instance.isCeremonyTime)
         {
             Ceremony();
+            return;
         }
-        if (PenaltyManager.Instance.isGameEnd) return;
 
         if (isKicker)
         {
@@ -207,6 +215,8 @@ public class Kicker : MonoBehaviour
 
         // 1. 애니메이션 실행
         anim.enabled = true;
+        anim.Rebind();           // 바인딩 초기화
+        anim.Update(0f);
 
         // 2. 조인트 물체 충돌 연결 해제
         foreach (var j in joints)
@@ -282,27 +292,25 @@ public class Kicker : MonoBehaviour
     {
         if (isKick) return;
 
-        Debug.Log("킥 준비");
+        //Debug.Log("킥 준비");
 
-        StartCoroutine(KickCoroutine());
+        if(kickCoroutine != null) StopCoroutine(kickCoroutine);
+        kickCoroutine = StartCoroutine(KickCoroutine());
     }
     
     private IEnumerator KickCoroutine()
     {
-        Debug.Log("킥 발싸");
+        //Debug.Log("킥 발싸");
 
         isKick = true;
         anim.SetTrigger(KICKANIM);
-
-        yield return new WaitForSeconds(0.5f);
-
         EnableRagdoll();
 
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2.5f);
+        isKick = false;
 
-        if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-
-        Debug.Log("실행 체크");
+        DisableRagdoll();
+        //Debug.Log("실행 체크");
     }
 
     private void Diving()
@@ -345,18 +353,14 @@ public class Kicker : MonoBehaviour
         }
         else
         {
-            //dir = (downDivingOffset + targetPos.forward);
-            //dir = (dir - transform.position).normalized;
-
-            //dir = (downDivingOffset - transform.right).normalized;
             dir = (downDivingOffset - dir).normalized;
-
 
             legRigid.AddForce(dir * power, ForceMode.Impulse);
         }
 
         yield return new WaitForSeconds(2.5f);
 
+        isDiving = false;
         DisableRagdoll();
     }
 
@@ -380,6 +384,7 @@ public class Kicker : MonoBehaviour
 
     private void CeremonyStart()
     {
+        Debug.Log("세레머니 시작");
         StartCoroutine(CeremonyCoroutine());
     }
 
@@ -387,6 +392,7 @@ public class Kicker : MonoBehaviour
     {
         if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
         if (divingCoroutine != null) StopCoroutine(divingCoroutine);
+        if (kickCoroutine != null) StopCoroutine(kickCoroutine);
 
         DisableRagdoll();
         anim.enabled = false;
@@ -396,8 +402,8 @@ public class Kicker : MonoBehaviour
         if(kickCeremony)
         {
             rb.position = PenaltyManager.Instance.ballPos;
-            transform.position = PenaltyManager.Instance.ballPos;
             rb.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
+            transform.position = PenaltyManager.Instance.ballPos;
             transform.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
         }
         /*else if(defenceCeremony)
@@ -423,7 +429,7 @@ public class Kicker : MonoBehaviour
     {
         if (PenaltyManager.Instance.isComplete) return;
 
-        if (isRagDoll || isKick) return; // 실행중에는 차단
+        if (isRagDoll || isKick || isDiving) return; // 실행중에는 차단
 
         if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Player"))
         {

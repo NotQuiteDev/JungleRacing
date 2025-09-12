@@ -157,7 +157,7 @@ public class Joker : MonoBehaviour
 
         Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0);
         transform.position = original;
-        Debug.Log("스냅 처리됨");
+        //Debug.Log("스냅 처리됨");
 
         // 1. 애니메이션 실행
         anim.enabled = true;

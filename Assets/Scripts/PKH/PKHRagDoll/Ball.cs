@@ -32,7 +32,7 @@ public class Ball : MonoBehaviour
 
     public void Shoot(Vector3 playerPos)
     {
-        Debug.Log("슛 체크");
+        //Debug.Log("슛 체크");
 
         Vector3 vec;
         float x, y;
@@ -56,7 +56,7 @@ public class Ball : MonoBehaviour
         vec = vec - transform.position;
         //vec.z = zOffset;
         vec.y *= 2; // y축 보정
-        Debug.Log(vec);
+        //Debug.Log(vec);
 
         rb.AddForce(vec.normalized * power, ForceMode.Impulse);
     }
@@ -85,8 +85,8 @@ public class Ball : MonoBehaviour
         
         if(collision.gameObject.CompareTag("Line")) // 골이라면
         {
-            PenaltyManager.Instance.ChangeScore();
             ResetBall();
+            PenaltyManager.Instance.ChangeScore();
         }
         else if (collision.gameObject.CompareTag("Finish")) // 골이라면
         {
