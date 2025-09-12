@@ -45,7 +45,8 @@ public class SoccerMainCamera : MonoBehaviour
 
     void Start()
     {
-        // 마우스 커서를 숨기고 화면 중앙에 고정시킵니다.
+        // Start()에서는 커서 제어 코드를 그대로 두거나, GameManager의 Start()로 옮겨도 됩니다.
+        // 현재 구조에서는 여기에 두는 것이 직관적입니다.
         if (enableMouseControl)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -58,7 +59,9 @@ public class SoccerMainCamera : MonoBehaviour
         if (target == null) return;
 
         // --- 마우스 입력 처리 ---
-        if (enableMouseControl)
+        // ✨✨✨ 이 부분을 수정했습니다! ✨✨✨
+        // 마우스 컨트롤이 활성화 되어있고, SoccerGameManager가 '플레이 중' 상태일 때만 입력을 받습니다.
+        if (enableMouseControl && SoccerGameManager.Instance.IsGamePlaying)
         {
             currentX += Input.GetAxis("Mouse X") * sensitivityX * Time.deltaTime;
             currentY -= Input.GetAxis("Mouse Y") * sensitivityY * Time.deltaTime; // Y축은 반전

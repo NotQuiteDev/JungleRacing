@@ -5470,6 +5470,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameDurationMinutes: 90
   realTimeMinutesToCompleteGame: 1.5
+  nextSceneName: MainMenu
   ball: {fileID: 1358753708}
   player: {fileID: 3860775161106806786}
   ai: {fileID: 1668126242596071127}

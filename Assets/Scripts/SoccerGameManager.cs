@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement; // 씬 관리를 위해 추가
 
 // 이 enum은 어느 팀의 골대인지를 구분하기 위해 사용됩니다.
 public enum Team { Left, Right }
@@ -14,6 +15,9 @@ public class SoccerGameManager : MonoBehaviour
     public float gameDurationMinutes = 90f;
     [Tooltip("위의 가상 게임 시간이 흘러가는 데 걸리는 실제 시간(분)입니다.")]
     public float realTimeMinutesToCompleteGame = 1.5f; // 1.5분 = 90초
+    
+    [Tooltip("게임 종료 후 이동할 씬의 이름을 입력하세요.")]
+    public string nextSceneName;
 
     [Header("게임 오브젝트 연결")]
     public GameObject ball;
@@ -30,8 +34,9 @@ public class SoccerGameManager : MonoBehaviour
     private float gameTimeSeconds = 0f;
     private float timeScale;
 
-    // 게임 상태
-    private bool isGamePlaying = true;
+    // ✨✨✨ 여기에 변경 사항이 있습니다! ✨✨✨
+    // 게임 상태 (외부에서 읽을 수 있지만, 오직 이 스크립트 내에서만 값을 변경 가능)
+    public bool IsGamePlaying { get; private set; } = true;
     private bool isGoalScored = false; // 골이 들어간 직후 중복 처리를 막기 위한 플래그
     private string winnerMessage = "";
 
@@ -42,7 +47,6 @@ public class SoccerGameManager : MonoBehaviour
 
     [Tooltip("골이 들어간 후 게임이 리셋되기까지 기다리는 시간(초)입니다.")]
     public float resetDelayAfterGoal = 2f;
-    // =================================
     
     void Awake()
     {
@@ -58,7 +62,10 @@ public class SoccerGameManager : MonoBehaviour
 
     void Start()
     {
-        // 실제 시간 대비 가상 시간의 배율을 계산합니다.
+        // 게임 시작 또는 재시작 시 커서를 숨기고 잠급니다.
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
         timeScale = (gameDurationMinutes * 60) / (realTimeMinutesToCompleteGame * 60);
 
         // 게임 시작 시 각 오브젝트의 초기 위치를 저장합니다.
@@ -69,7 +76,8 @@ public class SoccerGameManager : MonoBehaviour
 
     void Update()
     {
-        if (isGamePlaying)
+        // ✨✨✨ IsGamePlaying 프로퍼티 사용 ✨✨✨
+        if (IsGamePlaying)
         {
             // 시간이 흐르게 합니다. Time.deltaTime에 배율을 곱해 더 빨리 흐르게 만듭니다.
             gameTimeSeconds += Time.deltaTime * timeScale;
@@ -104,15 +112,15 @@ public class SoccerGameManager : MonoBehaviour
 
     private IEnumerator ResetAfterGoal()
     {
-        // 2초간 대기
+        // 지정된 시간(초)만큼 대기
         yield return new WaitForSeconds(resetDelayAfterGoal);
 
         // 플레이어와 공을 초기 위치로 리셋
         ball.transform.position = ballInitialPos;
-        //player.position = playerInitialPos;
-        //ai.position = aiInitialPos;
+        //player.position = playerInitialPos; // (필요 시 주석 해제)
+        //ai.position = aiInitialPos;         // (필요 시 주석 해제)
         
-        // 물리적 움직임도 모두 초기화
+        // 물리적 움직임도 모두 초기화 (공, 플레이어, AI)
         ball.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
         ball.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
         player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
@@ -126,7 +134,12 @@ public class SoccerGameManager : MonoBehaviour
 
     private void EndGame()
     {
-        isGamePlaying = false;
+        // ✨✨✨ IsGamePlaying 프로퍼티 사용 ✨✨✨
+        IsGamePlaying = false; // 게임 플레이 상태를 종료로 설정
+
+        // 게임 종료 시 커서를 다시 보이게 하고 잠금을 해제합니다.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
 
         if (leftTeamScore > rightTeamScore)
         {
@@ -142,12 +155,29 @@ public class SoccerGameManager : MonoBehaviour
         }
     }
 
-    // 게임 화면에 텍스트를 직접 그리는 GUI 함수
-    // ================== [ 수정된 OnGUI 함수 ] ==================
-    // 게임 화면에 텍스트를 직접 그리는 GUI 함수
+    // 게임 재시작 함수: 현재 씬을 다시 로드합니다.
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    // 다음 씬으로 이동하는 함수: 인스펙터에서 설정한 씬으로 이동합니다.
+    public void GoToNextScene()
+    {
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            SceneManager.LoadScene(nextSceneName);
+        }
+        else
+        {
+            Debug.LogError("다음 씬 이름이 지정되지 않았습니다! Build Settings에 씬을 추가하고 이름을 확인하세요.");
+        }
+    }
+
+    // 게임 화면에 텍스트와 버튼을 직접 그리는 GUI 함수
     void OnGUI()
     {
-        // 텍스트 스타일 설정 (크기, 정렬 등)
+        // --- 텍스트 스타일 설정 (점수, 시간, 결과용) ---
         GUIStyle style = new GUIStyle();
         style.fontSize = 30;
         style.fontStyle = FontStyle.Bold;
@@ -172,7 +202,6 @@ public class SoccerGameManager : MonoBehaviour
         style.normal.textColor = Color.white;
         GUI.Label(scoreRect, scoreText, style);
 
-
         // 2. 시간 표시 (점수 바로 아래)
         int minutes = (int)(gameTimeSeconds / 60);
         int seconds = (int)(gameTimeSeconds % 60);
@@ -189,11 +218,35 @@ public class SoccerGameManager : MonoBehaviour
         style.normal.textColor = Color.white;
         GUI.Label(timerRect, timerText, style);
 
+        // 3. 조작법 안내 표시 (키보드 & 게임패드)
+        GUIStyle controlStyle = new GUIStyle();
+        controlStyle.fontSize = 18; // 폰트 크기
+        controlStyle.fontStyle = FontStyle.Bold;
+        controlStyle.alignment = TextAnchor.UpperLeft; // 좌측 상단 정렬
+        controlStyle.normal.textColor = Color.white;   // 텍스트 색상
 
-        // 3. 게임 종료 시 승리 메시지 표시
-        if (!isGamePlaying)
+        // 조작법 텍스트 그림자를 위한 스타일
+        GUIStyle controlShadowStyle = new GUIStyle(controlStyle);
+        controlShadowStyle.normal.textColor = Color.black;
+
+        string controlsText = "Move: WASD / Left Stick\n" + 
+                              "Camera: Mouse / Right Stick\n" + 
+                              "Kick: Spacebar / A Button";
+        
+        Rect controlsRect = new Rect(15, 15, 400, 100); // 화면 좌측 상단 위치 (x, y, width, height)
+
+        // 그림자 먼저 그리기 (원본 텍스트보다 2px씩 아래, 오른쪽에)
+        Rect controlShadowRect = new Rect(controlsRect.x + 2, controlsRect.y + 2, controlsRect.width, controlsRect.height);
+        GUI.Label(controlShadowRect, controlsText, controlShadowStyle);
+
+        // 원본 조작법 텍스트 그리기
+        GUI.Label(controlsRect, controlsText, controlStyle);
+
+        // 4. 게임 종료 시 승리 메시지 및 버튼 표시
+        // ✨✨✨ IsGamePlaying 프로퍼티 사용 ✨✨✨
+        if (!IsGamePlaying)
         {
-            Rect resultRect = new Rect(Screen.width / 2 - 200, Screen.height / 2 - 50, 400, 100);
+            Rect resultRect = new Rect(Screen.width / 2 - 200, Screen.height / 2 - 100, 400, 100);
             string resultText = $"Game Over\n{winnerMessage}";
 
             // 그림자 먼저 그리기
@@ -205,6 +258,25 @@ public class SoccerGameManager : MonoBehaviour
             // 원본 텍스트 그리기
             style.normal.textColor = Color.yellow;
             GUI.Label(resultRect, resultText, style);
+            
+            // 버튼 스타일 설정
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 20;
+            buttonStyle.fontStyle = FontStyle.Bold;
+
+            // '다시하기' 버튼
+            Rect restartButtonRect = new Rect(Screen.width / 2 - 210, Screen.height / 2 + 20, 200, 50);
+            if (GUI.Button(restartButtonRect, "다시하기", buttonStyle))
+            {
+                RestartGame();
+            }
+
+            // '다음 씬으로' 버튼
+            Rect nextSceneButtonRect = new Rect(Screen.width / 2 + 10, Screen.height / 2 + 20, 200, 50);
+            if (GUI.Button(nextSceneButtonRect, "다음 씬으로", buttonStyle))
+            {
+                GoToNextScene();
+            }
         }
     }
 }
