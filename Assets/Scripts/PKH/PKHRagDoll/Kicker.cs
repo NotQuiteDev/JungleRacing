@@ -13,6 +13,7 @@ public class Kicker : MonoBehaviour
     private Collider[] ragColls;
 
     [SerializeField] private Rigidbody spineRigid;
+    [SerializeField] private Rigidbody legRigid;
     [SerializeField] private Transform targetPos;
 
 
@@ -24,15 +25,17 @@ public class Kicker : MonoBehaviour
     [SerializeField] private float speed = 5f;
     private float curKickDelay = 3f;
     private float kickDelay = 3f;
-     
-    
+    private Vector3 upDivingOffset = new Vector3(0, 0.8f, 0);
+    private Vector3 downDivingOffset = new Vector3(0, 0.14f, 0);
+
     // State
     private bool isKicker = true; // 현재 키커인지 확인
     private bool isRagDoll = false; // 현재 레그돌 실행중인지
     private bool isKick = false;
+    private bool isDiving = false;
     private bool isReady = false;
     private Coroutine ragDollCoroutine;
-
+    private Coroutine divingCoroutine;
 
 
     private void Awake()
@@ -50,7 +53,7 @@ public class Kicker : MonoBehaviour
 
         joints = GetComponentsInChildren<CharacterJoint>();
 
-        Init();
+        DisableRagdoll();
     }
 
     private void Start()
@@ -61,41 +64,53 @@ public class Kicker : MonoBehaviour
     private void PenaltyManager_ChangeKickerEvent(object sender, bool e)
     {
         if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-        gameObject.SetActive(false);
-
-        Debug.Log("현재 e값 :" + e);
 
         isKicker = !e;
 
         AISet();
-
-        gameObject.SetActive(true);
     }
 
     private void AISet()
     {
+        StartCoroutine(Init());
+    }
+
+    private IEnumerator Init()
+    {
+        DisableRagdoll();
+        anim.enabled = false;
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+
         if (isKicker)
         {
             curKickDelay = kickDelay;
-
-            isReady = false;
-            isKick = false;
+            rb.position = PenaltyManager.Instance.kickerPos;
+            rb.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
             transform.position = PenaltyManager.Instance.kickerPos;
+            transform.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
         }
-        else transform.position = PenaltyManager.Instance.goalKeeperPos;
+        else
+        {
+            isDiving = false;
+            rb.position = PenaltyManager.Instance.goalKeeperPos;
+            rb.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
+            transform.position = PenaltyManager.Instance.goalKeeperPos;
+            transform.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
+        }
+        yield return null;
 
-        Init();
-    }
-
-    private void Init()
-    {
-        DisableRagdoll();
-        rb.linearVelocity = Vector3.zero;
+        rb.isKinematic = false;
+        isRagDoll = false;
+        anim.enabled = true;
+        anim.SetBool(WALKANIM, false);
     }
 
 
     private void FixedUpdate()
     {
+        if (PenaltyManager.Instance.isComplete) return;
+
         if(isKicker)
         {
             if (isKick) return;
@@ -121,7 +136,11 @@ public class Kicker : MonoBehaviour
         }
         else
         {
-
+            if (isDiving) return;
+            if (Vector3.Distance(transform.position, targetPos.position) < 13f) // 다이빙
+            {
+                Diving();
+            }
         }
       
     }
@@ -165,11 +184,13 @@ public class Kicker : MonoBehaviour
         // 4. 물리 비활성화
         foreach (var r in ragsRigid)
         {
+            r.isKinematic = true;
             r.detectCollisions = false; // 물리 충돌 감지 활성화
             r.useGravity = false; // 중력 비활성화
         }
 
         // 5. 플레이어 설정 활성화
+        rb.isKinematic = false;
         rb.detectCollisions = true;
         rb.useGravity = true;
         rb.linearVelocity = Vector3.zero;
@@ -198,12 +219,14 @@ public class Kicker : MonoBehaviour
         // 4. 물리 활성화 및 초기화
         foreach (var r in ragsRigid)
         {
+            r.isKinematic = false;
             r.linearVelocity = Vector3.zero; // 속도 초기화
             r.detectCollisions = true; // 물리 충돌 감지 활성화
             r.useGravity = true; // 중력 활성화
         }
 
         // 5. 플레이어 설정 비활성화
+        rb.isKinematic = true;
         rb.detectCollisions = false;
         rb.useGravity = false;
         col.enabled = false;
@@ -224,8 +247,7 @@ public class Kicker : MonoBehaviour
 
         StartCoroutine(KickCoroutine());
     }
-
-
+    
     private IEnumerator KickCoroutine()
     {
         Debug.Log("킥 발싸");
@@ -244,8 +266,62 @@ public class Kicker : MonoBehaviour
         Debug.Log("실행 체크");
     }
 
+    private void Diving()
+    {
+        if (isDiving) return;
+
+        if (divingCoroutine != null) StopCoroutine(divingCoroutine);
+        divingCoroutine = StartCoroutine(DivingCoroutine());
+    }
+
+    private IEnumerator DivingCoroutine()
+    {
+        isDiving = true;
+        EnableRagdoll();
+
+        bool isCenter = Mathf.Abs(targetPos.position.x - PenaltyManager.Instance.ballPos.x) <= 0.3f ? true : false;
+        bool isLeft = targetPos.position.x - PenaltyManager.Instance.ballPos.x <= 0 ? true : false;
+        bool upDiving = Random.Range(0, 2) == 0 ? true : false;
+
+        Vector3 dir = Vector3.zero;
+
+        float power = 175f;
+
+        if (!isCenter)
+        {
+            if (isLeft) dir = -transform.right;
+            else dir = transform.right;
+        }
+        else
+        {
+            dir = transform.position - targetPos.position;
+            power = 125f;
+        }
+
+        if (upDiving)
+        {
+            dir = (upDivingOffset - dir).normalized;
+
+            spineRigid.AddForce(dir * power, ForceMode.Impulse);
+        }
+        else
+        {
+            //dir = (downDivingOffset + targetPos.forward);
+            //dir = (dir - transform.position).normalized;
+
+            //dir = (downDivingOffset - transform.right).normalized;
+            dir = (downDivingOffset - dir).normalized;
+
+
+            legRigid.AddForce(dir * power, ForceMode.Impulse);
+        }
+
+        yield return new WaitForSeconds(2.5f);
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
+        if (PenaltyManager.Instance.isComplete) return;
         if (isKicker)
         {
             if (isRagDoll || isKick) return; // 실행중에는 차단
