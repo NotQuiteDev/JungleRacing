@@ -132,7 +132,7 @@ public class Joker : MonoBehaviour
         else
         {
             anim.SetBool(WALKANIM, true);
-            rb.MovePosition(rb.position + dir * speed * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + dir * speed * PenaltyManager.Instance.senemonySpeed * Time.fixedDeltaTime);
 
             Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
             rb.MoveRotation(targetRot);
@@ -287,30 +287,33 @@ public class Joker : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (PenaltyManager.Instance.isComplete) return;
+
+        if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Enemy"))
+        {
+            if (!isRagDoll)
+            {
+                EnableRagdoll();
+            }
+
+            Vector3 dir = transform.position - collision.gameObject.transform.position;
+            dir.Normalize();
+
+            foreach (var r in ragsRigid)
+            {
+                r.AddForce(dir * 20, ForceMode.Impulse);
+            }
+
+            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+            ragDollCoroutine = StartCoroutine(ResetRagDoll());
+        }
+
         if (isKicker)
         {
 
         }
         else
         {
-            if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Enemy"))
-            {
-                if (!isRagDoll)
-                {
-                    EnableRagdoll();
-                }
-
-                Vector3 dir = transform.position - collision.gameObject.transform.position;
-                dir.Normalize();
-
-                foreach (var r in ragsRigid)
-                {
-                    r.AddForce(dir * 20, ForceMode.Impulse);
-                }
-
-                if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-                ragDollCoroutine = StartCoroutine(ResetRagDoll());
-            }
+            
         }
     }
 }

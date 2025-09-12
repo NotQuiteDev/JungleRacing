@@ -8,6 +8,7 @@ public class PenaltyManager : MonoBehaviour
     public static PenaltyManager Instance { get; private set; }
 
     // Component
+    [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI timerText;
 
     // Event
@@ -25,12 +26,18 @@ public class PenaltyManager : MonoBehaviour
 
     // State
     public bool isPlayerKick = false; // 플레이어 공격 차례인지 확인
-    private bool kickComplete = false;
+    public bool isGoal = false; // 골을 넣었는지
 
     public bool isComplete = false;
+    public bool isCeremonyTime = false;
 
+    private int aiScore = 0;
+    private int playerScore = 0;
 
     private Coroutine changeCoroutine;
+
+    public float senemonySpeed = 1f; // 기본값
+
 
     private void Awake()
     {
@@ -39,20 +46,24 @@ public class PenaltyManager : MonoBehaviour
 
     private void Update()
     {
+        if (isCeremonyTime) return;
+
         curStateTimer += Time.deltaTime;
         if(curStateTimer >= stageTimer)
         {
+            curStateTimer = stageTimer;
             ChangeKicker();
         }
+
+        TimerUpdate();
     }
 
     // 키커 체인지
     public void ChangeKicker()
     {
-        isComplete = true;
-        isPlayerKick = !isPlayerKick;
-        //kickComplete = true;
-        curStateTimer = 0;
+        isCeremonyTime = true;
+        senemonySpeed = 2.5f;
+        //isComplete = true;
 
         if (changeCoroutine != null) StopCoroutine(changeCoroutine);
         changeCoroutine = StartCoroutine(Complete());
@@ -60,10 +71,34 @@ public class PenaltyManager : MonoBehaviour
 
     private IEnumerator Complete()
     {
+        yield return new WaitForSeconds(5f); // 세레머니 타임
+
+        isCeremonyTime = false;
+        isComplete = true;
+        isPlayerKick = !isPlayerKick;
+        curStateTimer = 0;
+        isGoal = false;
+        senemonySpeed = 1f;
         yield return null;
+
         ChangeKickerEvent?.Invoke(this, isPlayerKick);
 
         yield return null;
         isComplete = false;
+    }
+
+    private void TimerUpdate()
+    {
+        timerText.text = "Timer: " + (10 - curStateTimer);
+    }
+
+    public void ChangeScore()
+    {
+        isGoal = true;
+
+        if (isPlayerKick) playerScore++;
+        else aiScore++;
+
+        scoreText.text = playerScore + " : " + aiScore;
     }
 }

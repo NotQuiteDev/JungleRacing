@@ -40,11 +40,11 @@ public class Ball : MonoBehaviour
         if (PenaltyManager.Instance.isPlayerKick)
         {
             y = Random.Range(0, yRange + 1);
-            if(playerPos.x > transform.position.x) // right
+            if(playerPos.x < transform.position.x) // right
             {
-                x = Random.Range(0, xRange + 1);
+                x = Random.Range(0.5f, xRange + 1);
             }
-            else x = Random.Range(-xRange, 0);
+            else x = Random.Range(-xRange, -0.5f);
         }
         else
         {
@@ -77,10 +77,18 @@ public class Ball : MonoBehaviour
             Vector3 dir = transform.position - collision.gameObject.transform.position;
             dir.Normalize();
 
-            if (PenaltyManager.Instance.isPlayerKick) rb.AddForce(dir * power / 3, ForceMode.Impulse);
-            else rb.AddForce(dir * power, ForceMode.Impulse);
+            if (PenaltyManager.Instance.isPlayerKick) rb.AddForce(dir * power/3, ForceMode.Impulse);
+            else rb.AddForce(dir * power/5, ForceMode.Impulse);
         }
-        else if(collision.gameObject.CompareTag("Line")) // 골이라면
+
+        if (PenaltyManager.Instance.isCeremonyTime) return;
+        
+        if(collision.gameObject.CompareTag("Line")) // 골이라면
+        {
+            PenaltyManager.Instance.ChangeScore();
+            ResetBall();
+        }
+        else if (collision.gameObject.CompareTag("Finish")) // 골이라면
         {
             ResetBall();
         }
