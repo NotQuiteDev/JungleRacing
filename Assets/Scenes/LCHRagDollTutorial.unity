@@ -8090,7 +8090,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3119743449993598066, guid: 32b21e79e20ce2d4fa5500d1e8e96adb, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -8167,9 +8168,17 @@ PrefabInstance:
       propertyPath: rushTriggerDistance
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1766083938974761470, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: ballSpeedRagdollThreshold
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 8721366125901973885, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
       propertyPath: m_Name
       value: AIPlayer
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721366125901973885, guid: 04bf2b2682bf13b4ab34131ba09788a9, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

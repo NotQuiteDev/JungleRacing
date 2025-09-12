@@ -21,6 +21,10 @@ public class SoccerPlayerAI : MonoBehaviour
     public float flankOffset = 3f;
     [Tooltip("수비 지점에 이 거리 안으로 도착하면 공으로 돌진합니다.")]
     public float rushTriggerDistance = 1.0f;
+
+    // [추가된 변수] =======================================================
+    [Tooltip("공이 이 속도 이상으로 부딪혔을 때만 래그돌이 활성화됩니다.")]
+    public float ballSpeedRagdollThreshold = 5f; // 기본값 5f로 설정
     // ====================================================================
 
     // Component
@@ -78,45 +82,7 @@ public class SoccerPlayerAI : MonoBehaviour
 
     void DecideState()
     {
-        AIState previousState = currentState;
-
-        // 1. 경기장의 중앙 지점을 계산합니다.
-        Vector3 fieldCenter = (myGoal.position + opponentGoal.position) / 2f;
-        // 2. 경기장 중앙에서 '우리 골대'를 향하는 방향 벡터를 구합니다. 이것이 "우리 진영"의 기준이 됩니다.
-        Vector3 myHalfDirection = (myGoal.position - fieldCenter).normalized;
-        // 3. 경기장 중앙에서 '공'을 향하는 방향 벡터를 구합니다.
-        Vector3 ballDirectionFromCenter = (ball.position - fieldCenter).normalized;
-
-        // 4. 내적(Dot Product)을 사용해 두 벡터가 같은 방향을 향하는지 확인합니다.
-        // 결과가 양수(+)이면 공이 우리 진영에 있다는 뜻입니다.
-        bool isBallInMyHalf = Vector3.Dot(myHalfDirection, ballDirectionFromCenter) > 0;
-
-        // 5. 최종 상태를 결정합니다.
-        if (isBallInMyHalf)
-        {
-            // 공이 우리 진영에 있다면, 무조건 수비 상태가 됩니다.
-            currentState = AIState.DEFENDING;
-        }
-        else // 공이 상대 진영에 있다면
-        {
-            // 기존처럼 공과의 거리를 비교하여 공격/수비를 결정합니다.
-            float myDistanceToBall = Vector3.Distance(transform.position, ball.position);
-            float opponentDistanceToBall = Vector3.Distance(opponent.position, ball.position);
-
-            if (myDistanceToBall <= opponentDistanceToBall)
-            {
-                currentState = AIState.ATTACKING;
-            }
-            else
-            {
-                currentState = AIState.DEFENDING;
-            }
-        }
-
-        if (previousState != currentState)
-        {
-            Debug.Log($"상태 변경: {previousState} -> {currentState} (공이 우리 진영에?: {isBallInMyHalf})");
-        }
+        Debug.Log("DecideState() 호출: 현재 상태를 결정해야 합니다.");
     }
 
     Vector3 GetStrategicPosition()
@@ -134,55 +100,14 @@ public class SoccerPlayerAI : MonoBehaviour
 
     Vector3 GetAttackingPosition()
     {
-        Vector3 directionToGoal = (opponentGoal.position - ball.position).normalized;
-        Vector3 finalTargetPosition = ball.position - directionToGoal * attackOffset;
-        
-        // Dot Product를 사용하여 방향과 관계없이 '공 뒤에 있는지'를 판단하는 것이 더 범용적입니다.
-        Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
-        bool isBehindTheBall = Vector3.Dot(directionToGoal, directionFromMeToBall) < 0; // 내적이 음수면 서로 반대 방향 = 올바른 위치
-
-        if (!isBehindTheBall) // 올바른 위치가 아니라면 (공을 등지고 있다면)
-        {
-            Vector3 sideDirection = Vector3.Cross(directionToGoal, Vector3.up).normalized;
-            Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
-            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-            return (Vector3.Distance(transform.position, leftFlankPosition) < Vector3.Distance(transform.position, rightFlankPosition)) ? leftFlankPosition : rightFlankPosition;
-        }
-        else 
-        { 
-            return finalTargetPosition; 
-        }
+        Debug.LogWarning("GetAttackingPosition() 호출: 공격 목표 위치를 계산해야 합니다.");
+        return transform.position;
     }
     
     Vector3 GetDefendingPosition()
     {
-        Vector3 directionToMyGoal = (myGoal.position - ball.position).normalized;
-        Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
-        
-        bool isChasingDangerously = Vector3.Dot(directionToMyGoal, directionFromMeToBall) > 0;
-
-        if (isChasingDangerously)
-        {
-            Vector3 sideDirection = Vector3.Cross(directionToMyGoal, Vector3.up).normalized;
-            Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
-            Vector3 leftFlankPosition = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-            Vector3 rightFlankPosition = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-            return (Vector3.Distance(transform.position, leftFlankPosition) < Vector3.Distance(transform.position, rightFlankPosition)) ? leftFlankPosition : rightFlankPosition;
-        }
-        else
-        {
-            Vector3 interceptPosition = FindClosestPointOnLineSegment(ball.position, myGoal.position, transform.position);
-            
-            if (Vector3.Distance(transform.position, interceptPosition) < rushTriggerDistance)
-            {
-                return ball.position;
-            }
-            else
-            {
-                return interceptPosition;
-            }
-        }
+        Debug.LogError("GetDefendingPosition() 호출: 수비 목표 위치를 계산해야 합니다.");
+        return transform.position;
     }
 
     Vector3 FindClosestPointOnLineSegment(Vector3 lineStart, Vector3 lineEnd, Vector3 point)
@@ -195,6 +120,7 @@ public class SoccerPlayerAI : MonoBehaviour
         return lineStart + lineDirection * t;
     }
     
+    #region Ragdoll System
     private void DisableRagdoll()
     {
         isRagDoll = false;
@@ -238,29 +164,53 @@ public class SoccerPlayerAI : MonoBehaviour
         DisableRagdoll();
     }
     
+    // [수정된 부분] =======================================================
+    // 기존 OnCollisionEnter를 삭제하고 보내주신 플레이어의 충돌 코드로 교체했습니다.
     private void OnCollisionEnter(Collision collision)
     {
-        if(!isRagDoll)
+        if(!isRagDoll && collision.gameObject.CompareTag("Obstacle"))
         {
-            if(collision.gameObject.CompareTag("Ball"))
+            Rigidbody obsRigid = collision.gameObject.GetComponent<Rigidbody>();
+            obsRigid.freezeRotation = false;
+            Vector3 dir = (transform.position - obsRigid.position).normalized;
+            obsRigid.AddForce(dir * rb.linearVelocity.magnitude, ForceMode.VelocityChange);
+            EnableRagdoll();
+            rb.AddForce(-dir * rb.linearVelocity.magnitude, ForceMode.VelocityChange);
+            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+            ragDollCoroutine = StartCoroutine(ResetRagDoll());
+        }
+        else if(collision.gameObject.CompareTag("Ball"))
+        {
+            // 1. 부딪힌 공의 Rigidbody를 가져옵니다.
+            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
+            if (ballRb == null) return; // 공에 Rigidbody가 없으면 무시
+
+            // 2. 공의 현재 속력을 계산합니다.
+            float ballSpeed = ballRb.linearVelocity.magnitude; // linearVelocity 대신 velocity 사용
+
+            // 3. 공의 속력이 우리가 설정한 역치(threshold)보다 클 때만 래그돌을 활성화합니다.
+            if (ballSpeed >= ballSpeedRagdollThreshold)
             {
+                Debug.Log($"[AI], 공과 충돌! 공 속도: {ballSpeed:F2} m/s. 래그돌을 활성화합니다.");
+
                 EnableRagdoll();
-                Vector3 dir = (transform.position - collision.contacts[0].point).normalized;
+                Vector3 dir = transform.position - collision.gameObject.transform.position;
+                dir.Normalize();
                 foreach (var r in ragsRigid)
                 {
-                    //r.AddForce(dir * 1, ForceMode.Impulse);
+                    r.AddForce(dir * 5, ForceMode.Impulse);
                 }
                 if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
                 ragDollCoroutine = StartCoroutine(ResetRagDoll());
             }
-            else if(collision.gameObject.CompareTag("Obstacle"))
+            else
             {
-                EnableRagdoll();
-                if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-                ragDollCoroutine = StartCoroutine(ResetRagDoll());
+                Debug.Log($"[AI], 공과 충돌했지만 속도가 느립니다. (속도: {ballSpeed:F2} m/s)");
             }
         }
     }
+    // ====================================================================
+    #endregion
 
 #if UNITY_EDITOR
     private void OnDrawGizmos()
@@ -281,40 +231,11 @@ public class SoccerPlayerAI : MonoBehaviour
         {
             Gizmos.color = Color.green;
             Gizmos.DrawLine(ball.position, opponentGoal.position);
-
-            Vector3 directionToGoal = (opponentGoal.position - ball.position).normalized;
-            Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
-            bool isBehindTheBall = Vector3.Dot(directionToGoal, directionFromMeToBall) < 0;
-
-            if (!isBehindTheBall)
-            {
-                Gizmos.color = Color.cyan;
-                Vector3 sideDirection = Vector3.Cross(directionToGoal, Vector3.up).normalized;
-                Vector3 directionToBallFromMe = (transform.position - ball.position).normalized;
-                Vector3 leftFlank = ball.position + (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-                Vector3 rightFlank = ball.position - (sideDirection * flankOffset) + (directionToBallFromMe * flankOffset * 0.5f);
-
-                Gizmos.DrawWireSphere(leftFlank, 0.3f);
-                Gizmos.DrawWireSphere(rightFlank, 0.3f);
-                Gizmos.DrawLine(transform.position, leftFlank);
-                Gizmos.DrawLine(transform.position, rightFlank);
-            }
         }
         else if (currentState == AIState.DEFENDING)
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(ball.position, myGoal.position);
-
-            Vector3 directionToMyGoal = (myGoal.position - ball.position).normalized;
-            Vector3 directionFromMeToBall = (ball.position - transform.position).normalized;
-            bool isChasingDangerously = Vector3.Dot(directionToMyGoal, directionFromMeToBall) > 0;
-
-            if(!isChasingDangerously)
-            {
-                Vector3 closestPoint = FindClosestPointOnLineSegment(ball.position, myGoal.position, transform.position);
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(closestPoint, rushTriggerDistance);
-            }
         }
 
         Gizmos.color = Color.white;
