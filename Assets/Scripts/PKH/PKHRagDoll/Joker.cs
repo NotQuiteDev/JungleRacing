@@ -137,31 +137,17 @@ public class Joker : MonoBehaviour
             Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
             rb.MoveRotation(targetRot);
         }
-
-        if (isKicker)
-        {
-
-        }
-        else
-        {
-            
-        }
     }
 
 
     private void Update()
     {
-        if (isKicker)
-        {
+        if (PenaltyManager.Instance.isGameEnd) return;
 
-        }
-        else
+        curAttackDelay -= Time.deltaTime;
+        if (curAttackDelay <= 0f)
         {
-            curAttackDelay -= Time.deltaTime;
-            if (curAttackDelay <= 0f)
-            {
-                isAttack = false;
-            }
+            isAttack = false;
         }
     }
 

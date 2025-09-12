@@ -138,6 +138,7 @@ public class Kicker : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (PenaltyManager.Instance.isGameEnd) return;
         if (PenaltyManager.Instance.isComplete) return;
         if (isCeremony) return;
 
@@ -184,6 +185,7 @@ public class Kicker : MonoBehaviour
         {
             Ceremony();
         }
+        if (PenaltyManager.Instance.isGameEnd) return;
 
         if (isKicker)
         {

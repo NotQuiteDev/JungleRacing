@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PenaltyManager : MonoBehaviour
 {
@@ -10,6 +11,9 @@ public class PenaltyManager : MonoBehaviour
     // Component
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private GameObject manual;
+    [SerializeField] private GameObject gameOver;
+    [SerializeField] private GameObject gameClear;
 
     // Event
     public event EventHandler<bool> ChangeKickerEvent;
@@ -25,6 +29,7 @@ public class PenaltyManager : MonoBehaviour
     private float stageTimer = 10f;
 
     // State
+    public bool isGameEnd { get; private set; }
     public bool isPlayerKick = false; // 플레이어 공격 차례인지 확인
     public bool isGoal = false; // 골을 넣었는지
 
@@ -38,6 +43,7 @@ public class PenaltyManager : MonoBehaviour
 
     public float senemonySpeed = 1f; // 기본값
 
+    private bool isManual = false;
 
     private void Awake()
     {
@@ -46,6 +52,7 @@ public class PenaltyManager : MonoBehaviour
 
     private void Update()
     {
+        if (isGameEnd) return;
         if (isCeremonyTime) return;
 
         curStateTimer += Time.deltaTime;
@@ -73,6 +80,8 @@ public class PenaltyManager : MonoBehaviour
     {
         yield return new WaitForSeconds(5f); // 세레머니 타임
 
+        if (isGameEnd) yield break;
+
         isCeremonyTime = false;
         isComplete = true;
         isPlayerKick = !isPlayerKick;
@@ -89,16 +98,42 @@ public class PenaltyManager : MonoBehaviour
 
     private void TimerUpdate()
     {
-        timerText.text = "Timer: " + (10 - curStateTimer);
+        timerText.text = "Timer: " + (10 - curStateTimer).ToString("F2") ;
     }
 
     public void ChangeScore()
     {
         isGoal = true;
 
-        if (isPlayerKick) playerScore++;
-        else aiScore++;
-
+        if (isPlayerKick)
+        {
+            playerScore++;
+            if (playerScore >= 5)
+            {
+                isGameEnd = true;
+                gameClear.SetActive(true);
+            }
+        }
+        else
+        {
+            aiScore++;
+            if (aiScore >= 5)
+            {
+                isGameEnd = true;
+                gameOver.SetActive(true);
+            }
+        }
         scoreText.text = playerScore + " : " + aiScore;
+    }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void ManualChange()
+    {
+        isManual = !isManual;
+        manual.SetActive(isManual);
     }
 }
