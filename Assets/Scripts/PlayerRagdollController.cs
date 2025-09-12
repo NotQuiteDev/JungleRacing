@@ -68,19 +68,42 @@ public class PlayerRagdollController : MonoBehaviour, IRagdollController
 
     private void FixedUpdate()
     {
-        if (isAttack) return;
-        Vector2 moveDir = InputManager.Instance.MoveDirNormalized();
-        Vector3 dir = new Vector3(moveDir.y, 0, -moveDir.x);
-
-        if (dir == Vector3.zero)
+        if (isAttack)
         {
-            divingDir = dir;
+            return;
+        }
+
+        // --- [ 카메라 기준 이동 로직으로 수정 ] ---
+        // 1. 메인 카메라의 Transform을 가져옵니다.
+        Transform camTransform = Camera.main.transform;
+
+        // 2. 카메라가 바라보는 방향을 기준으로 앞/옆 방향을 계산합니다. (Y축은 무시)
+        Vector3 camForward = camTransform.forward;
+        camForward.y = 0;
+        camForward.Normalize();
+
+        Vector3 camRight = camTransform.right;
+        camRight.y = 0;
+        camRight.Normalize();
+
+        // 3. 키보드 입력(WASD)을 받습니다.
+        Vector2 moveInput = InputManager.Instance.MoveDirNormalized(); // (x, y) 형태
+
+        // 4. 입력값과 카메라 방향을 조합하여 최종 이동 방향을 결정합니다.
+        Vector3 dir = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+        // ===========================================
+
+        if (dir.sqrMagnitude < 0.01f) // sqrMagnitude는 0과 비교할 때 더 효율적입니다.
+        {
+            // divingDir 관련 코드는 더 이상 필요하지 않을 수 있으므로 주석 처리하거나 삭제합니다.
+            // divingDir = dir;
             anim.SetBool(WALKANIM, false);
         }
         else
         {
             anim.SetBool(WALKANIM, true);
             rb.MovePosition(rb.position + dir * speed * Time.fixedDeltaTime);
+
             Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
             rb.MoveRotation(targetRot);
         }
