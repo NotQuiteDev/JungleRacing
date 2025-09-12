@@ -51,6 +51,9 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     public float spawnInvincibilityDuration = 0.5f;
     private bool isInvincible = false; // 현재 무적 상태인지 확인하는 내부 변수
  
+
+    [Tooltip("공격 태클 시 슛의 부정확도(오차)입니다. 0이면 완벽하게 중앙으로 찹니다.")]
+    public float shotInaccuracy = 0.1f;
     // ====================================================================
 
 
@@ -165,8 +168,23 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
         Vector3 diveDirection;
         if (target == ball)
         {
-            // 공격형 태클: 공 너머의 상대 골대를 조준
+            Debug.Log("AI가 공을 향해 [공격형 태클]을 시도합니다!");
+            
+            // 1. 공에서 상대 골대를 향하는 기본 방향 계산
             Vector3 attackDirection = (opponentGoal.position - ball.position).normalized;
+
+            // ===== [ 이 부분이 추가/수정되었습니다 ] =====
+            // 2. 설정된 부정확도(shotInaccuracy)에 따라 랜덤한 오차를 적용
+            if (shotInaccuracy > 0)
+            {
+                // Random.insideUnitSphere는 반지름 1인 구 안의 랜덤한 지점을 반환합니다.
+                // 여기에 부정확도 값을 곱해서 오차의 범위를 조절합니다.
+                Vector3 error = Random.insideUnitSphere * shotInaccuracy;
+                attackDirection = (attackDirection + error).normalized; // 기존 방향에 오차를 더하고 다시 정규화
+            }
+            // ===========================================
+
+            // 3. 최종적으로 오차가 적용된 방향으로 목표 지점 설정
             Vector3 targetPoint = ball.position + attackDirection * tackleAimLeadDistance;
             diveDirection = (targetPoint - transform.position).normalized;
         }
