@@ -25,16 +25,34 @@ public class Ball : MonoBehaviour
     public void Init()
     {
         transform.position = PenaltyManager.Instance.ballPos;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        isFirst = false;
     }
 
-    public void Shoot()
+    public void Shoot(Vector3 playerPos)
     {
         Debug.Log("슛 체크");
 
-        float x = Random.Range(-xRange, xRange + 1);
-        float y = Random.Range(0, yRange + 1);
+        Vector3 vec;
+        float x, y;
 
-        Vector3 vec = new Vector3(x, y, zOffset);
+        if (PenaltyManager.Instance.isPlayerKick)
+        {
+            y = Random.Range(0, yRange + 1);
+            if(playerPos.x > transform.position.x) // right
+            {
+                x = Random.Range(0, xRange + 1);
+            }
+            else x = Random.Range(-xRange, 0);
+        }
+        else
+        {
+            x = Random.Range(-xRange, xRange + 1);
+            y = Random.Range(0, yRange + 1);
+        }
+
+        vec = new Vector3(x, y, zOffset);
         vec = vec - transform.position;
         //vec.z = zOffset;
         vec.y *= 2; // y축 보정
@@ -52,14 +70,15 @@ public class Ball : MonoBehaviour
             if (!isFirst) // 퍼스트 터치라면, 아마 플레이어나 AI가 먼저 닿을일은 없을듯
             {
                 isFirst = true;
-                Shoot();
+                Shoot(collision.gameObject.transform.position);
                 return;
             }
 
             Vector3 dir = transform.position - collision.gameObject.transform.position;
             dir.Normalize();
 
-            rb.AddForce(dir * power/3, ForceMode.Impulse);
+            if (PenaltyManager.Instance.isPlayerKick) rb.AddForce(dir * power / 3, ForceMode.Impulse);
+            else rb.AddForce(dir * power, ForceMode.Impulse);
         }
         else if(collision.gameObject.CompareTag("Line")) // 골이라면
         {
@@ -69,7 +88,6 @@ public class Ball : MonoBehaviour
 
     private void ResetBall()
     {
-        Debug.Log("골인 or 아웃");
         PenaltyManager.Instance.ChangeKicker();
     }
 }

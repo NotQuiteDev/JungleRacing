@@ -96,12 +96,16 @@ public class Joker : MonoBehaviour
         if (isKicker)
         {
             rb.position = PenaltyManager.Instance.kickerPos;
+            rb.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
             transform.position = PenaltyManager.Instance.kickerPos;
+            transform.rotation = Quaternion.Euler(PenaltyManager.Instance.kickerRotate);
         }
         else
         {
             rb.position = PenaltyManager.Instance.goalKeeperPos;
+            rb.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
             transform.position = PenaltyManager.Instance.goalKeeperPos;
+            transform.rotation = Quaternion.Euler(PenaltyManager.Instance.goalKeeperRotate);
         }
         yield return null;
 
