@@ -4,34 +4,36 @@ using UnityEngine;
 
 public class Kicker : MonoBehaviour
 {
+    // Componet
     private Animator anim;
-
-    [SerializeField] private Transform targetPos;
-
     private Rigidbody rb;
     private Rigidbody[] ragsRigid;
-    [SerializeField] private Rigidbody spineRigid;
     private CharacterJoint[] joints;
     private Collider col;
     private Collider[] ragColls;
+
+    [SerializeField] private Rigidbody spineRigid;
+    [SerializeField] private Transform targetPos;
+
 
     // Const
     private const string WALKANIM = "isWalk";
     private const string KICKANIM = "isKick";
 
+    // Status
+    [SerializeField] private float speed = 5f;
+    private float curKickDelay = 3f;
+    private float kickDelay = 3f;
+     
+    
     // State
+    private bool isKicker = true; // 현재 키커인지 확인
     private bool isRagDoll = false; // 현재 레그돌 실행중인지
     private bool isKick = false;
     private bool isReady = false;
-
-    // Status
-    [SerializeField] private float speed = 5f;
-    //private float cuKickDelay = 0f;
-    private float kickDelay = 3f;
-
     private Coroutine ragDollCoroutine;
 
-    private Vector3 startPos;
+
 
     private void Awake()
     {
@@ -48,49 +50,93 @@ public class Kicker : MonoBehaviour
 
         joints = GetComponentsInChildren<CharacterJoint>();
 
-        DisableRagdoll();
+        Init();
+    }
 
-        startPos = transform.position;
+    private void Start()
+    {
+        PenaltyManager.Instance.ChangeKickerEvent += PenaltyManager_ChangeKickerEvent;
+    }
+
+    private void PenaltyManager_ChangeKickerEvent(object sender, bool e)
+    {
+        if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+        gameObject.SetActive(false);
+
+        Debug.Log("현재 e값 :" + e);
+
+        isKicker = !e;
+
+        AISet();
+
+        gameObject.SetActive(true);
+    }
+
+    private void AISet()
+    {
+        if (isKicker)
+        {
+            curKickDelay = kickDelay;
+
+            isReady = false;
+            isKick = false;
+            transform.position = PenaltyManager.Instance.kickerPos;
+        }
+        else transform.position = PenaltyManager.Instance.goalKeeperPos;
+
+        Init();
     }
 
     private void Init()
     {
-
+        DisableRagdoll();
+        rb.linearVelocity = Vector3.zero;
     }
 
 
     private void FixedUpdate()
     {
-        if (isKick) return;
-
-        if (Vector3.Distance(transform.position, targetPos.position) < 1f) Kick();
-
-        if (!isReady)
+        if(isKicker)
         {
-            anim.SetBool(WALKANIM, false);
-            return;
+            if (isKick) return;
+
+            if (Vector3.Distance(transform.position, targetPos.position) < 1f) Kick();
+
+            if (!isReady)
+            {
+                anim.SetBool(WALKANIM, false);
+                return;
+            }
+            else
+            {
+                Vector3 dir = targetPos.position - transform.position;
+                dir = dir.normalized;
+
+                anim.SetBool(WALKANIM, true);
+                rb.MovePosition(rb.position + dir * speed * Time.fixedDeltaTime);
+
+                Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
+                rb.MoveRotation(targetRot);
+            }
         }
         else
         {
-            Vector3 dir = targetPos.position - transform.position;
-            dir = dir.normalized;
 
-            anim.SetBool(WALKANIM, true);
-            rb.MovePosition(rb.position + dir * speed * Time.fixedDeltaTime);
-
-            Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
-            rb.MoveRotation(targetRot);
         }
+      
     }
 
 
     private void Update()
     {
-        if (!isReady)
+        if(isKicker)
         {
-            kickDelay -= Time.deltaTime;
-            if (kickDelay < 0) isReady = true;
-        } 
+            if (!isReady)
+            {
+                curKickDelay -= Time.deltaTime;
+                if (curKickDelay < 0) isReady = true;
+            }
+        }  
     }
 
     private void DisableRagdoll()
@@ -187,39 +233,41 @@ public class Kicker : MonoBehaviour
         isKick = true;
         anim.SetTrigger(KICKANIM);
 
+        yield return new WaitForSeconds(0.5f);
+
         EnableRagdoll();
 
-        Vector3 dir = Joker.Instance.transform.position - transform.position;
-        dir.Normalize();
-        spineRigid.AddForce(dir * 150f, ForceMode.Impulse);
-
-        yield return new WaitForSeconds(3.5f);
+        yield return new WaitForSeconds(3f);
 
         if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-        //Destroy(gameObject);
-
 
         Debug.Log("실행 체크");
-        //DisableRagdoll();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (isRagDoll || isKick) return; // 실행중에는 차단
-
-        if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Player"))
+        if (isKicker)
         {
-            // 레그돌 실행
-            EnableRagdoll();
-            Vector3 dir = (transform.position - collision.gameObject.transform.position).normalized;
+            if (isRagDoll || isKick) return; // 실행중에는 차단
 
-            foreach (var r in ragsRigid)
+            if (collision.gameObject.CompareTag("Ball") || collision.gameObject.CompareTag("Player"))
             {
-                r.AddForce(dir * 20, ForceMode.Impulse);
-            }
+                // 레그돌 실행
+                EnableRagdoll();
+                Vector3 dir = (transform.position - collision.gameObject.transform.position).normalized;
 
-            if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
-            ragDollCoroutine = StartCoroutine(ResetRagDoll());
+                foreach (var r in ragsRigid)
+                {
+                    r.AddForce(dir * 20, ForceMode.Impulse);
+                }
+
+                if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
+                ragDollCoroutine = StartCoroutine(ResetRagDoll());
+            }
+        }
+        else
+        {
+
         }
     }
 }

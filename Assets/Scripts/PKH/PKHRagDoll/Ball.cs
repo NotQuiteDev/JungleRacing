@@ -19,6 +19,12 @@ public class Ball : MonoBehaviour
     private void Start()
     {
         //Invoke("Shoot", 3f);
+        PenaltyManager.Instance.ChangeKickerEvent += (a, b) => Init();
+    }
+
+    public void Init()
+    {
+        transform.position = PenaltyManager.Instance.ballPos;
     }
 
     public void Shoot()
@@ -39,17 +45,9 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
-            Vector3 dir = transform.position - collision.gameObject.transform.position;
-            dir.Normalize();
-
-            rb.AddForce(dir * power/3, ForceMode.Impulse);
-        }
-
-        if(collision.gameObject.CompareTag("Enemy"))
-        {
-            if (!isFirst)
+            if (!isFirst) // 퍼스트 터치라면, 아마 플레이어나 AI가 먼저 닿을일은 없을듯
             {
                 isFirst = true;
                 Shoot();
@@ -59,13 +57,16 @@ public class Ball : MonoBehaviour
             Vector3 dir = transform.position - collision.gameObject.transform.position;
             dir.Normalize();
 
-            rb.AddForce(dir * power / 3, ForceMode.Impulse);
+            rb.AddForce(dir * power/3, ForceMode.Impulse);
         }
-
-        if(collision.gameObject.CompareTag("Line"))
+        else if(collision.gameObject.CompareTag("Line")) // 골이라면
         {
-            //Destroy(gameObject);
-            gameObject.SetActive(false);
+            ResetBall();
         }
+    }
+
+    private void ResetBall()
+    {
+        PenaltyManager.Instance.ChangeKicker();
     }
 }
