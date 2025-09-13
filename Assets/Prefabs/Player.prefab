@@ -358,7 +358,7 @@ GameObject:
   - component: {fileID: 3468133950365689029}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -427,8 +427,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxSteerAngle: 60
-  forwardSpeed: 1000
-  reverseSpeed: 500
+  forwardSpeed: 500
+  reverseSpeed: 300
   brakeForce: 150
   gripFactor: 0.8
   turnSpeed: 2
