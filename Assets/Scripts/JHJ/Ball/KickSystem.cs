@@ -134,9 +134,9 @@ public class KickSystem : MonoBehaviour
     public void SetKickEnabled(bool enabled)
     {
         canKick = enabled;
-        if (!enabled)
+        if (enabled)
         {
-            hasKicked = false; // 킥 비활성화 시 상태 리셋
+            hasKicked = false; // 킥 활성화 시 킥 완료 상태도 리셋
         }
         Debug.Log($"[KickSystem] 킥 {(enabled ? "활성화" : "비활성화")}");
     }
@@ -146,9 +146,9 @@ public class KickSystem : MonoBehaviour
     /// </summary>
     public void ResetKick()
     {
-        canKick = false;
-        hasKicked = false;
-        Debug.Log("[KickSystem] 킥 상태 리셋");
+        hasKicked = false;  // 킥 완료 상태만 리셋
+        // canKick은 리셋하지 않음 - SetKickEnabled()로 별도 제어
+        Debug.Log("[KickSystem] 킥 상태 리셋 - hasKicked를 false로 설정");
     }
 
     /// <summary>

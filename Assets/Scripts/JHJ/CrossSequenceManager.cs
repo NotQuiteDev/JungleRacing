@@ -103,6 +103,7 @@ public class CrossSequenceManager : MonoBehaviour
     private CrossSystem crossSystem;
     private KickSystem kickSystem;
     private Rigidbody ballRigidbody;
+    private MarkerManager markerManager; // 추가
 
     /// <summary>현재 진행 중인 코루틴</summary>
     private Coroutine currentSequenceCoroutine;
@@ -142,8 +143,11 @@ public class CrossSequenceManager : MonoBehaviour
             crossSystem = ball.GetComponent<CrossSystem>();
             kickSystem = ball.GetComponent<KickSystem>();
             ballRigidbody = ball.GetComponent<Rigidbody>();
+            
+            // MarkerManager 참조 추가
+            markerManager = ball.GetComponent<MarkerManager>();
 
-            LogEssential($"시스템 초기화 완료 - CrossSystem: {crossSystem != null}, KickSystem: {kickSystem != null}");
+            LogEssential($"시스템 초기화 완료 - CrossSystem: {crossSystem != null}, KickSystem: {kickSystem != null}, MarkerManager: {markerManager != null}");
         }
     }
 
@@ -181,6 +185,18 @@ public class CrossSequenceManager : MonoBehaviour
         }
 
         LogEssential("크로스 시퀀스 매니저 준비 완료");
+    }
+
+    /// <summary>
+    /// 매 프레임 업데이트 - 지면 투영 마커 업데이트 추가
+    /// </summary>
+    private void Update()
+    {
+        // 시퀀스가 활성화되어 있고 공이 크로스 중일 때 지면 투영 마커 업데이트
+        if (isSequenceActive && crossSystem != null && crossSystem.IsCrossing && markerManager != null)
+        {
+            markerManager.UpdateGroundProjection(ball.transform.position);
+        }
     }
 
     /// <summary>
@@ -240,6 +256,13 @@ public class CrossSequenceManager : MonoBehaviour
 
                 UnityEditor.Handles.Label(CurrentPositionVector + Vector3.up * 1.5f, statusText);
             }
+
+            // 공의 현재 위치와 목표 위치 연결선 표시
+            if (isSequenceActive && ball != null)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawLine(ball.transform.position, CurrentPositionVector);
+            }
 #endif
         }
     }
@@ -265,12 +288,26 @@ public class CrossSequenceManager : MonoBehaviour
 
         LogEssential("=== 크로스 시퀀스 시작 ===");
 
+        // 다른 시스템들 먼저 비활성화
+        DisableOtherSystems();
+
         // 초기화
         currentCycle = 0;
         currentPosition = 1;
         isSequenceActive = true;
         isSystemControlled = true;
         ResetAllStates();
+
+        // 기존 크로스/킥 강제 중단
+        if (crossSystem != null && crossSystem.IsCrossing)
+        {
+            crossSystem.StopCross();
+        }
+        if (kickSystem != null)
+        {
+            kickSystem.ResetKick();
+            kickSystem.SetKickEnabled(false);
+        }
 
         OnSequenceStarted?.Invoke();
 
@@ -386,8 +423,10 @@ public class CrossSequenceManager : MonoBehaviour
         // 위치 변경 이벤트 발생
         OnPositionChanged?.Invoke(targetPosition, CurrentCycle, currentPosition);
 
-        // 이동 후 안정화 대기
-        yield return new WaitForSeconds(0.5f);
+        // 이동 후 안정화 대기 (코너 이동 후 딜레이 추가)
+        LogEssential($"⏳ 위치 {currentPosition}번 이동 후 안정화 대기 ({positionChangeDelay}초)");
+        SetCurrentStep($"위치 {currentPosition}번 안정화 대기");
+        yield return new WaitForSeconds(positionChangeDelay);
 
         // 크로스 시작
         LogEssential($"⚽ 위치 {currentPosition}번에서 크로스 시작");
@@ -604,11 +643,28 @@ public class CrossSequenceManager : MonoBehaviour
         SoccerBallCross existingCross = ball?.GetComponent<SoccerBallCross>();
         if (existingCross != null)
         {
+            // 자동 시작 비활성화
+            existingCross.autoStartCross = false;
+            
+            // 진행 중인 크로스 중단
+            existingCross.ResetCross();
+            
+            // 컴포넌트 비활성화
             existingCross.enabled = false;
-            LogEssential("기존 SoccerBallCross 컴포넌트 비활성화");
+            
+            LogEssential("기존 SoccerBallCross 컴포넌트 완전 비활성화");
         }
 
-        // 다른 자동 시스템들도 비활성화 가능
+        // 다른 자동 시스템들도 비활성화
+        var otherManagers = FindObjectsOfType<CrossSequenceManager>();
+        foreach (var manager in otherManagers)
+        {
+            if (manager != this && manager.isSequenceActive)
+            {
+                manager.StopSequence();
+                LogEssential($"다른 CrossSequenceManager 비활성화: {manager.name}");
+            }
+        }
     }
 
     /// <summary>
@@ -617,13 +673,33 @@ public class CrossSequenceManager : MonoBehaviour
     /// <param name="position">목표 위치</param>
     private void MoveBallToPosition(Vector3 position)
     {
-        if (ball == null) return;
+        if (ball == null) 
+        {
+            Debug.LogError("[CrossSequenceManager] 공 오브젝트가 null입니다!");
+            return;
+        }
 
-        // 물리 상태 초기화
+        LogEssential($"📍 공 이동 시작 - 현재: {ball.transform.position} → 목표: {position}");
+
+        // 골 트리거 리셋 (새로운 위치로 이동할 때)
+        if (goalTrigger != null)
+        {
+            goalTrigger.ResetGoal();
+            goalTrigger.RestoreBallPhysics(ball);
+        }
+
+        // 물리 상태 초기화 (순서 수정)
         if (ballRigidbody != null)
         {
-            ballRigidbody.linearVelocity = Vector3.zero;
-            ballRigidbody.angularVelocity = Vector3.zero;
+            // ✅ kinematic이 아닐 때 velocity 설정
+            if (!ballRigidbody.isKinematic)
+            {
+                ballRigidbody.linearVelocity = Vector3.zero;
+                ballRigidbody.angularVelocity = Vector3.zero;
+            }
+            
+            // 그 다음에 kinematic 설정
+            ballRigidbody.isKinematic = true; // 이동 중에는 물리 비활성화
         }
 
         // 위치 이동
@@ -640,7 +716,26 @@ public class CrossSequenceManager : MonoBehaviour
             kickSystem.ResetKick();
         }
 
-        LogEssential($"📍 공을 위치 {currentPosition}번으로 이동: {position}");
+        // 물리 다시 활성화
+        if (ballRigidbody != null)
+        {
+            ballRigidbody.isKinematic = false;
+            ballRigidbody.useGravity = true;
+            ballRigidbody.detectCollisions = true;
+            
+            // ✅ kinematic이 아닐 때 velocity 다시 초기화
+            ballRigidbody.linearVelocity = Vector3.zero;
+            ballRigidbody.angularVelocity = Vector3.zero;
+        }
+
+        LogEssential($"📍 공을 위치 {currentPosition}번으로 이동 완료: {ball.transform.position}");
+        
+        // 실제로 이동했는지 확인
+        float distance = Vector3.Distance(ball.transform.position, position);
+        if (distance > 0.1f)
+        {
+            Debug.LogWarning($"[CrossSequenceManager] 공 이동 실패! 거리 차이: {distance}");
+        }
     }
 
     /// <summary>

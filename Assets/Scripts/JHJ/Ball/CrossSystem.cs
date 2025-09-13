@@ -461,15 +461,25 @@ public class CrossSystem : MonoBehaviour
             Gizmos.DrawWireSphere(targetPosition, 0.3f);
         }
 
-        // 실제 크로스 목표가 있으면 표시
-        if (isCrossing && actualCrossTarget != Vector3.zero)
+        // 실제 크로스 목표가 있으면 항상 표시 (강화된 부분)
+        if (actualCrossTarget != Vector3.zero)
         {
             Gizmos.color = crossTargetColor;
-            Gizmos.DrawWireSphere(actualCrossTarget, 0.3f);
+            Gizmos.DrawWireSphere(actualCrossTarget, 0.4f);
             
             // 공에서 목표까지 선 그리기
             Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, actualCrossTarget);
+
+            // 목표 위치 강조 표시
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireCube(actualCrossTarget, Vector3.one * 0.3f);
+
+#if UNITY_EDITOR
+            // 목표 정보 텍스트
+            string targetInfo = $"크로스 목표\n{actualCrossTarget}\n거리: {Vector3.Distance(transform.position, actualCrossTarget):F1}m";
+            UnityEditor.Handles.Label(actualCrossTarget + Vector3.up, targetInfo);
+#endif
         }
     }
 

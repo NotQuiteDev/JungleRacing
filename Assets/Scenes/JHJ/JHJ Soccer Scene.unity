@@ -577,7 +577,7 @@ MonoBehaviour:
   position2: {x: 29, y: 0, z: 10.5}
   kickWaitTime: 1
   goalWaitTime: 3
-  totalCycles: 1
+  totalCycles: 3
   ball: {fileID: 2081323067}
   goalTrigger: {fileID: 1811398410}
   showPositions: 1
@@ -586,7 +586,7 @@ MonoBehaviour:
   essentialLogsOnly: 1
   crossCompleteWaitTime: 0.5
   autoStartOnAwake: 1
-  startDelay: 2
+  startDelay: 3
   positionChangeDelay: 3
 --- !u!1 &1229310881
 GameObject:
@@ -1132,8 +1132,8 @@ Transform:
   m_GameObject: {fileID: 1811398407}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.917, z: 12.536}
-  m_LocalScale: {x: 13, y: 4, z: 2.5}
+  m_LocalPosition: {x: 0, y: 0.917, z: 13.194}
+  m_LocalScale: {x: 13, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1174,6 +1174,13 @@ MonoBehaviour:
   isActive: 1
   showTrigger: 1
   triggerColor: {r: 0, g: 1, b: 0, a: 1}
+  useNetEffect: 1
+  netPullForce: 5
+  velocityDamping: 0.3
+  netEffectDuration: 2
+  netCenter: {x: 0, y: 0, z: 0.5}
+  groundLevel: -1
+  stopOnGround: 1
 --- !u!1 &1824777942
 GameObject:
   m_ObjectHideFlags: 0
