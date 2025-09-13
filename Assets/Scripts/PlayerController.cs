@@ -5,9 +5,11 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     // === 입력 값 변수 ===
-    private float steeringInput;
-    private float throttleInput;
-    private PlayerControls playerControls;
+    private float steeringInput;  // A, D 키 입력 (X)
+    private float throttleInput;  // W, S 키 입력 (Y)
+    private Vector2 moveInput;    // WASD 입력을 Vector2로 받을 변수
+
+    private PlayerInput playerControls; // ✨ 파일 이름에 맞춰 PlayerInput 클래스 사용 ✨
 
     // === 자동차 제어 변수 ===
     [Header("Car Settings")]
@@ -22,29 +24,29 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private float currentSpeedKPH;
 
-    // 디버그용 변수
-    [Header("Debug")]
-    public bool showDebugUI = true;
-    private string carStatus = "Idle";
-
     private void Awake()
     {
-        playerControls = new PlayerControls();
+        // ✨ PlayerInput 클래스로 인스턴스 생성 ✨
+        playerControls = new PlayerInput();
         rb = GetComponent<Rigidbody>();
     }
 
-    private void OnEnable() { playerControls.Driving.Enable(); }
-    private void OnDisable() { playerControls.Driving.Disable(); }
+    // ✨ Driving 맵 대신 Player 맵을 활성화/비활성화 합니다. ✨
+    private void OnEnable() { playerControls.Player.Enable(); }
+    private void OnDisable() { playerControls.Player.Enable(); }
 
     void Update()
     {
-        steeringInput = playerControls.Driving.Move.ReadValue<float>();
-        throttleInput = playerControls.Driving.Throttle.ReadValue<float>();
+        // ✨ Player 맵의 Move 액션에서 Vector2 값을 읽어옵니다. ✨
+        moveInput = playerControls.Player.Move.ReadValue<Vector2>();
+
+        // 읽어온 Vector2 값에서 X는 조향(A,D), Y는 가속/감속(W,S)으로 분리합니다.
+        steeringInput = moveInput.x;
+        throttleInput = moveInput.y;
     }
 
     private void FixedUpdate()
     {
-        // 속도 계산을 FixedUpdate 최상단으로 옮겨 모든 로직에서 사용하도록 합니다.
         currentSpeedKPH = Vector3.Dot(rb.linearVelocity, transform.forward) * 3.6f;
 
         // === 1. 마찰력 로직 (옆 미끄러짐 방지) ===
@@ -53,60 +55,31 @@ public class PlayerController : MonoBehaviour
         Vector3 gripForce = -transform.right * lateralVelocity * rb.mass * gripFactor;
         rb.AddForce(gripForce, ForceMode.Acceleration);
 
-        // === 2. 가속/감속 로직 ===
-        if (throttleInput > 0.1f) // 전진
+        // === 2. 가속/감속 로직 (W, S 키) ===
+        if (throttleInput > 0.1f) // 전진 (W 키)
         {
             rb.AddForce(transform.forward * throttleInput * forwardSpeed);
-            carStatus = "Accelerating";
         }
-        else if (throttleInput < -0.1f) // 후진/브레이크
+        else if (throttleInput < -0.1f) // 후진/브레이크 (S 키)
         {
             if (currentSpeedKPH > 1.0f) // 브레이크
             {
                 rb.AddForce(-transform.forward * brakeForce);
-                carStatus = "Braking";
             }
             else // 후진
             {
                 rb.AddForce(transform.forward * throttleInput * reverseSpeed);
-                carStatus = "Reversing";
             }
         }
-        else
-        {
-            carStatus = "Idle (Coasting)";
-        }
         
-        // ★★★ 3. 차체 회전 로직 (수정된 핵심!) ★★★
+        // === 3. 차체 회전 로직 (A, D 키) ===
         if (rb.linearVelocity.magnitude > 0.1f)
         {
-            // ★★★ 수정된 부분 ★★★
-            // 조향 방향을 결정하는 승수. 현재 속도(currentSpeedKPH)가 0 이상(전진)이면 1, 음수(후진)이면 -1이 됩니다.
             float steerDirectionMultiplier = currentSpeedKPH >= 0 ? 1f : -1f;
-
-            // 목표 회전 각도를 계산합니다.
-            // 이제 throttleInput이 아닌, 실제 주행 방향에 따라 조향이 결정됩니다.
             float targetAngle = transform.eulerAngles.y + steeringInput * maxSteerAngle * steerDirectionMultiplier;
-
             Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
             
             rb.MoveRotation(Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
         }
-    }
-
-    // 디버그 UI (기존과 동일)
-    private void OnGUI()
-    {
-        // OnGUI에서도 실시간 속도 계산을 위해 FixedUpdate에서 계산된 값을 사용합니다.
-        if (!showDebugUI) return;
-        GUIStyle style = new GUIStyle { fontSize = 20, normal = { textColor = Color.white } };
-        GUI.Label(new Rect(10, 10, 300, 200),
-            $"--- INPUT DEBUG ---\n" +
-            $"Throttle Input: {throttleInput:F2}\n" +
-            $"Steering Input: {steeringInput:F2}\n\n" +
-            $"--- CAR STATUS ---\n" +
-            $"Speed: {currentSpeedKPH:F2} km/h\n" +
-            $"Status: {carStatus}",
-            style);
     }
 }
