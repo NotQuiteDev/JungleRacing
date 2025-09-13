@@ -45,8 +45,6 @@ public class SoccerMainCamera : MonoBehaviour
 
     void Start()
     {
-        // Start()에서는 커서 제어 코드를 그대로 두거나, GameManager의 Start()로 옮겨도 됩니다.
-        // 현재 구조에서는 여기에 두는 것이 직관적입니다.
         if (enableMouseControl)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -58,10 +56,26 @@ public class SoccerMainCamera : MonoBehaviour
     {
         if (target == null) return;
 
+        // --- ✨✨✨ 이 부분을 수정했습니다! (가장 중요) ✨✨✨ ---
+        // 게임이 현재 플레이 중인지 확인하는 변수
+        bool isGameCurrentlyPlaying = false; 
+
+        // 1. 먼저 SoccerGameManager가 있는지 확인합니다.
+        if (SoccerGameManager.Instance != null)
+        {
+            isGameCurrentlyPlaying = SoccerGameManager.Instance.IsGamePlaying;
+        }
+        // 2. 만약 없다면, CloneSoccerGameManager가 있는지 확인합니다.
+        else if (CloneSoccerGameManager.Instance != null)
+        {
+            isGameCurrentlyPlaying = CloneSoccerGameManager.Instance.IsGamePlaying;
+        }
+        // (둘 다 없으면 isGameCurrentlyPlaying은 false로 유지됩니다)
+        // --- 여기까지 수정 ---
+
         // --- 마우스 입력 처리 ---
-        // ✨✨✨ 이 부분을 수정했습니다! ✨✨✨
-        // 마우스 컨트롤이 활성화 되어있고, SoccerGameManager가 '플레이 중' 상태일 때만 입력을 받습니다.
-        if (enableMouseControl && SoccerGameManager.Instance.IsGamePlaying)
+        // 마우스 컨트롤이 활성화 되어있고, '현재 게임이 플레이 중' 상태일 때만 입력을 받습니다.
+        if (enableMouseControl && isGameCurrentlyPlaying)
         {
             currentX += Input.GetAxis("Mouse X") * sensitivityX * Time.deltaTime;
             currentY -= Input.GetAxis("Mouse Y") * sensitivityY * Time.deltaTime; // Y축은 반전
@@ -69,20 +83,13 @@ public class SoccerMainCamera : MonoBehaviour
         }
 
         // --- 카메라 위치 및 회전 계산 ---
-        // 1. 카메라의 목표 회전을 계산합니다.
         Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
-
-        // 2. 카메라가 따라다닐 타겟의 중심 위치를 계산합니다. (발밑이 아닌 가슴 높이)
         Vector3 targetPivot = target.position + Vector3.up * heightOffset;
-
-        // 3. 타겟 중심 위치에서 회전값과 거리를 적용하여 카메라의 목표 위치를 계산합니다.
         Vector3 desiredPosition = targetPivot - (rotation * Vector3.forward * distance);
         
-        // 4. 부드럽게 카메라 위치를 이동시킵니다.
         transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref positionVelocity, positionSmoothSpeed);
 
-        // 5. 카메라가 타겟을 바라보도록 설정합니다.
-        // 마우스 컨트롤을 사용할 때는 타겟 중심을, 아닐 때는 동적 프레이밍을 적용합니다.
+        // --- 카메라가 타겟을 바라보도록 설정 ---
         if (enableMouseControl)
         {
             transform.LookAt(targetPivot);
