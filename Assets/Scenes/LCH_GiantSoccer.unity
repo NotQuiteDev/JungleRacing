@@ -5681,12 +5681,13 @@ MonoBehaviour:
   realTimeMinutesToCompleteGame: 1.5
   nextSceneName: MainMenu
   mainMenuSceneName: MainMenu
+  resetDelayAfterGoal: 2
   ball: {fileID: 1358753708}
   player: {fileID: 3860775161106806786}
   ai: {fileID: 1668126242596071127}
   leftGoalPost: {fileID: 1976851748}
   rightGoalPost: {fileID: 534557419}
-  resetDelayAfterGoal: 2
+  sceneIndex: 7
 --- !u!4 &1481787842
 Transform:
   m_ObjectHideFlags: 0

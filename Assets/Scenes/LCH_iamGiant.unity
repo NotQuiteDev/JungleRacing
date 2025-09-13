@@ -5989,6 +5989,7 @@ MonoBehaviour:
   ai: {fileID: 1668126242596071127}
   leftGoalPost: {fileID: 1976851748}
   rightGoalPost: {fileID: 534557419}
+  sceneIndex: 8
 --- !u!4 &1481787842
 Transform:
   m_ObjectHideFlags: 0

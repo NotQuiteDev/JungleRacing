@@ -51,6 +51,9 @@ public class SoccerGameManager : MonoBehaviour
     // 새로운 Input System을 위한 변수
     private PlayerInput playerControls; // 파일 이름이 PlayerInput.inputactions 이므로 클래스 이름은 PlayerInput
 
+
+    public int sceneIndex = 0;
+
     void Awake()
     {
         if (Instance == null) { Instance = this; }
@@ -227,12 +230,19 @@ public class SoccerGameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(sceneIndex);
     }
 
     public void GoToNextScene()
     {
-        if (!string.IsNullOrEmpty(nextSceneName))
+        if(sceneIndex+1 >= 0 && sceneIndex+1 < SceneManager.sceneCountInBuildSettings)
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(sceneIndex+1);
+        }
+
+        /*if (!string.IsNullOrEmpty(nextSceneName))
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(nextSceneName);
@@ -240,20 +250,21 @@ public class SoccerGameManager : MonoBehaviour
         else
         {
             Debug.LogError("다음 씬 이름이 지정되지 않았습니다!");
-        }
+        }*/
     }
 
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
+        SceneManager.LoadScene(0);
+        /*if (!string.IsNullOrEmpty(mainMenuSceneName))
         {
             SceneManager.LoadScene(mainMenuSceneName);
         }
         else
         {
             Debug.LogError("메인 메뉴 씬 이름이 지정되지 않았습니다!");
-        }
+        }*/
     }
     
     void OnGUI()

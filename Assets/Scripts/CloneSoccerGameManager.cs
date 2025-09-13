@@ -56,6 +56,8 @@ public class CloneSoccerGameManager : MonoBehaviour
     private readonly float inputCooldown = 0.2f;
     private PlayerInput playerControls;
 
+    public int sceneIndex = 5;
+
     void Awake()
     {
         if (Instance == null) { Instance = this; }
@@ -245,11 +247,18 @@ public class CloneSoccerGameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(sceneIndex);
+        //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GoToNextScene()
     {
+        if (sceneIndex + 1 >= 0 && sceneIndex + 1 < SceneManager.sceneCountInBuildSettings)
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(sceneIndex + 1);
+        }
+        /*
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             Time.timeScale = 1f;
@@ -258,12 +267,14 @@ public class CloneSoccerGameManager : MonoBehaviour
         else
         {
             Debug.LogError("다음 씬 이름이 지정되지 않았습니다!");
-        }
+        }*/
     }
 
     public void GoToMainMenu()
     {
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0);
+        /*if (!string.IsNullOrEmpty(mainMenuSceneName))
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(mainMenuSceneName);
@@ -271,7 +282,7 @@ public class CloneSoccerGameManager : MonoBehaviour
         else
         {
             Debug.LogError("메인 메뉴 씬 이름이 지정되지 않았습니다!");
-        }
+        }*/
     }
     
     // ✨ ----- 패드 지원을 위한 메뉴 함수들 추가 ----- ✨

@@ -6669,9 +6669,9 @@ MonoBehaviour:
   timerText: {fileID: 1275209285}
   manual: {fileID: 1928733848}
   gameOver: {fileID: 2087750795}
-  gameOverButton: {fileID: 1858691692}
+  gameOverButton: {fileID: 2121183376}
   gameClear: {fileID: 129003507}
-  gameClearButton: {fileID: 2121183376}
+  gameClearButton: {fileID: 1858691692}
   pauseUI: {fileID: 1458568529}
   resumeButton: {fileID: 819439901}
   <ballPos>k__BackingField: {x: 0, y: 0, z: -12}
@@ -8812,7 +8812,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.095604114, g: 0.26415092, b: 0.07600568, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -9919,7 +9919,7 @@ MonoBehaviour:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_SelectedColor: {r: 0.8113208, g: 0.16456035, b: 0.25629961, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
