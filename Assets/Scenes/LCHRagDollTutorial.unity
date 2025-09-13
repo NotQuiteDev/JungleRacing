@@ -4577,8 +4577,6 @@ MonoBehaviour:
   target: {fileID: 9055773025796369157}
   ball: {fileID: 579882658}
   enableMouseControl: 1
-  sensitivityX: 1000
-  sensitivityY: 1000
   yAngleMin: -20
   yAngleMax: 80
   distance: 3
@@ -5309,14 +5307,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameDurationMinutes: 90
   realTimeMinutesToCompleteGame: 1.5
-  nextSceneName: 
-  mainMenuSceneName: 
+  nextSceneName: MainMenu
+  mainMenuSceneName: MainMenu
+  resetDelayAfterGoal: 2
   ball: {fileID: 1358753708}
   player: {fileID: 3860775161106806786}
   ai: {fileID: 1668126242596071127}
   leftGoalPost: {fileID: 1976851748}
   rightGoalPost: {fileID: 534557419}
-  resetDelayAfterGoal: 2
 --- !u!4 &1481787842
 Transform:
   m_ObjectHideFlags: 0

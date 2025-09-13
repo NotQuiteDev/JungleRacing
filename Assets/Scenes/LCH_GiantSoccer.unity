@@ -4856,8 +4856,6 @@ MonoBehaviour:
   target: {fileID: 9055773025796369157}
   ball: {fileID: 579882658}
   enableMouseControl: 1
-  sensitivityX: 300
-  sensitivityY: 250
   yAngleMin: -20
   yAngleMax: 80
   distance: 3
@@ -5682,7 +5680,7 @@ MonoBehaviour:
   gameDurationMinutes: 90
   realTimeMinutesToCompleteGame: 1.5
   nextSceneName: MainMenu
-  mainMenuSceneName: 
+  mainMenuSceneName: MainMenu
   ball: {fileID: 1358753708}
   player: {fileID: 3860775161106806786}
   ai: {fileID: 1668126242596071127}
