@@ -16,9 +16,9 @@ public class SoccerMainCamera : MonoBehaviour
     [Tooltip("마우스로 카메라를 조작하는 기능을 켤지 여부입니다.")]
     public bool enableMouseControl = true;
     [Tooltip("마우스 좌우 움직임 감도입니다.")]
-    public float sensitivityX = 200f;
+    private float sensitivityX = 300f;
     [Tooltip("마우스 상하 움직임 감도입니다.")]
-    public float sensitivityY = 150f;
+    private float sensitivityY = 250f;
     [Tooltip("카메라의 최소/최대 상하 각도입니다.")]
     public float yAngleMin = -20.0f;
     public float yAngleMax = 80.0f;
@@ -42,6 +42,7 @@ public class SoccerMainCamera : MonoBehaviour
     private float currentX = 0.0f;
     private float currentY = 0.0f;
     private Vector3 positionVelocity = Vector3.zero;
+
 
     void Start()
     {
@@ -77,9 +78,14 @@ public class SoccerMainCamera : MonoBehaviour
         // 마우스 컨트롤이 활성화 되어있고, '현재 게임이 플레이 중' 상태일 때만 입력을 받습니다.
         if (enableMouseControl && isGameCurrentlyPlaying)
         {
+            /*
             currentX += Input.GetAxis("Mouse X") * sensitivityX * Time.deltaTime;
             currentY -= Input.GetAxis("Mouse Y") * sensitivityY * Time.deltaTime; // Y축은 반전
-            currentY = Mathf.Clamp(currentY, yAngleMin, yAngleMax); // 상하 각도 제한
+            currentY = Mathf.Clamp(currentY, yAngleMin, yAngleMax); // 상하 각도 제한*/
+            Vector2 lookInput = InputManager.Instance.CameraDirNormalized();
+            currentX += lookInput.x * sensitivityX * InputManager.Instance.cameraSensitivity * Time.deltaTime;
+            currentY -= lookInput.y * sensitivityY * InputManager.Instance.cameraSensitivity * Time.deltaTime;
+            currentY = Mathf.Clamp(currentY, yAngleMin, yAngleMax);
         }
 
         // --- 카메라 위치 및 회전 계산 ---

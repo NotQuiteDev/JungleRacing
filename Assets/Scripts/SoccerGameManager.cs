@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement; // 씬 관리를 위해 추가
@@ -66,6 +67,9 @@ public class SoccerGameManager : MonoBehaviour
 
     void Start()
     {
+
+        InputManager.Instance.OnPause += HandlePause;
+
         // 게임 시작 시 커서를 숨기고 잠급니다. (재시작 시에도 적용)
         ResumeGame(); // 초기 상태는 게임 재개 상태로 시작
 
@@ -79,7 +83,7 @@ public class SoccerGameManager : MonoBehaviour
     void Update()
     {
         // ✨ ESC 키 입력 감지 ✨
-        if (Input.GetKeyDown(KeyCode.Escape))
+        /*if (Input.GetKeyDown(KeyCode.Escape))
         {
             // 게임이 종료된 상태가 아닐 때만 일시정지/재개 토글
             if (IsGamePlaying) 
@@ -93,7 +97,7 @@ public class SoccerGameManager : MonoBehaviour
                     PauseGame();
                 }
             }
-        }
+        }*/
 
         if (IsGamePlaying && !isPaused) // 게임이 플레이 중이고 일시정지 상태가 아닐 때만 시간 흐름
         {
@@ -105,7 +109,16 @@ public class SoccerGameManager : MonoBehaviour
             }
         }
     }
-    
+
+    private void HandlePause(object sender, EventArgs e)
+    {
+        if (IsGamePlaying)
+        {
+            if (isPaused) ResumeGame();
+            else PauseGame();
+        }
+    }
+
     // ✨ 게임 일시정지 함수 ✨
     public void PauseGame()
     {
@@ -180,7 +193,7 @@ public class SoccerGameManager : MonoBehaviour
         if (!string.IsNullOrEmpty(nextSceneName))
         {
             Time.timeScale = 1f; // 씬 로드 전에 시간을 다시 정상화
-            SceneManager.LoadScene(nextSceneName);
+            SceneManager.LoadScene(0);
         }
         else
         {
@@ -191,15 +204,18 @@ public class SoccerGameManager : MonoBehaviour
     // ✨ 메인 메뉴로 이동하는 함수 추가 ✨
     public void GoToMainMenu()
     {
-        if (!string.IsNullOrEmpty(mainMenuSceneName))
+        Time.timeScale = 1f; // 씬 로드 전에 시간을 다시 정상화
+        SceneManager.LoadScene(0);
+
+        /*if (!string.IsNullOrEmpty(mainMenuSceneName))
         {
             Time.timeScale = 1f; // 씬 로드 전에 시간을 다시 정상화
-            SceneManager.LoadScene(mainMenuSceneName);
+            SceneManager.LoadScene(0);
         }
         else
         {
             Debug.LogError("메인 메뉴 씬 이름이 지정되지 않았습니다! Build Settings에 씬을 추가하고 이름을 확인하세요.");
-        }
+        }*/
     }
 
 

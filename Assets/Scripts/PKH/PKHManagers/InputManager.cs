@@ -13,6 +13,8 @@ public class InputManager : MonoBehaviour
     public PlayerInput playerInput {  get; private set; }
     public bool connectGamePad { get; private set; } = false;
 
+    public float cameraSensitivity = 1f;
+
     private void Awake()
     {
         if(Instance == null) Instance = this;
@@ -74,10 +76,12 @@ public class InputManager : MonoBehaviour
                 case InputDeviceChange.Added:
                     connectGamePad = true;
                     ChangeDeviceState(true);
+                    cameraSensitivity = 0.7f;
                     break;
                 case InputDeviceChange.Removed:
                     connectGamePad = false;
                     ChangeDeviceState(false);
+                    cameraSensitivity = 1f;
                     break;
             }
         }
@@ -100,6 +104,11 @@ public class InputManager : MonoBehaviour
     public bool UpDiving()
     {
         return playerInput.Player.Run.IsPressed();
+    }
+
+    public Vector2 CameraDirNormalized()
+    {
+        return playerInput.Player.Look.ReadValue<Vector2>().normalized;
     }
 }
 
