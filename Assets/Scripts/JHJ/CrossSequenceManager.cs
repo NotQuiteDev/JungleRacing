@@ -448,9 +448,14 @@ public class CrossSequenceManager : MonoBehaviour
             SetCurrentStep($"위치 {currentPosition}번 골 대기");
             yield return StartCoroutine(WaitForGoal());
         }
+        else
+        {
+            //goalTrigger.OnFailAction?.Invoke();
+            Debug.Log("티배깅 준비");
+        }
 
-        // 상태 리셋
-        ResetStepStates();
+            // 상태 리셋
+            ResetStepStates();
         positionProcessCompleted = true;
 
         LogEssential($"🎯 위치 {currentPosition}번 처리 완료");
@@ -563,9 +568,16 @@ public class CrossSequenceManager : MonoBehaviour
             LogEssential($"🎉 위치 {currentPosition}번 골 성공! ({waitTime:F1}초)");
             OnGoalAchieved?.Invoke();
         }
-        else if (isSequenceActive)
+        else
         {
-            LogEssential($"⏰ 위치 {currentPosition}번 골 타임아웃 - 다음 위치로 이동");
+            // goalTrigger.OnFailAction?.Invoke();
+
+            Debug.Log("기달렸다가 실패할 때 티배깅");
+
+            if (isSequenceActive)
+            {
+                LogEssential($"⏰ 위치 {currentPosition}번 골 타임아웃 - 다음 위치로 이동");
+            }
         }
     }
 
@@ -783,7 +795,7 @@ public class CrossSequenceManager : MonoBehaviour
     {
         if (essentialLogsOnly)
         {
-            Debug.Log($"[CrossSequence] {message}");
+            //Debug.Log($"[CrossSequence] {message}");
         }
     }
 

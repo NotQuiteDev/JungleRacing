@@ -514,6 +514,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc7f2d3c925167a4fae4e64a3c0e9cfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cameraSensitivity: 1
 --- !u!4 &554843665
 Transform:
   m_ObjectHideFlags: 0
@@ -1534,6 +1535,7 @@ MonoBehaviour:
   spineRigid: {fileID: 1145677373645129065}
   legRigid: {fileID: 5693142021328249619}
   targetPos: {fileID: 2081323077}
+  goalTrigger: {fileID: 1811398410}
   ballKickSystem: {fileID: 2081323071}
   ballCrossSystem: {fileID: 2081323072}
   divingReactionTime: 0.1

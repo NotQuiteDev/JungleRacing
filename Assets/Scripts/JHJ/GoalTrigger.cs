@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -8,6 +9,7 @@ public class GoalTrigger : MonoBehaviour
     #region Events
     /// <summary>골 성공 이벤트</summary>
     public System.Action OnGoalScored;
+    public System.Action OnFailAction;
     #endregion
 
     #region Settings
@@ -48,7 +50,7 @@ public class GoalTrigger : MonoBehaviour
 
     #region Private Variables
     /// <summary>골이 이미 처리되었는지 여부</summary>
-    private bool goalProcessed = false;
+    public bool goalProcessed { get; private set; } = false;
 
     /// <summary>그물 효과가 진행 중인지 여부</summary>
     private bool netEffectActive = false;
@@ -312,7 +314,7 @@ public class GoalTrigger : MonoBehaviour
         if (markerManager != null)
         {
             markerManager.CleanupAllMarkers();
-            Debug.Log("[GoalTrigger] MarkerManager 정리");
+            //Debug.Log("[GoalTrigger] MarkerManager 정리");
         }
     }
 
@@ -324,7 +326,7 @@ public class GoalTrigger : MonoBehaviour
         goalProcessed = false;
         netEffectActive = false;
         ballRigidbody = null;
-        Debug.Log("[GoalTrigger] 골 상태 리셋");
+        //Debug.Log("[GoalTrigger] 골 상태 리셋");
     }
 
     /// <summary>
@@ -341,7 +343,7 @@ public class GoalTrigger : MonoBehaviour
             rb.isKinematic = false;
             rb.useGravity = true;
             rb.detectCollisions = true;
-            Debug.Log("[GoalTrigger] 공의 물리 상태 복원");
+            //Debug.Log("[GoalTrigger] 공의 물리 상태 복원");
         }
     }
     #endregion

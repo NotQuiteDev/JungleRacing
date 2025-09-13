@@ -138,7 +138,7 @@ public class KickSystem : MonoBehaviour
         {
             hasKicked = false; // 킥 활성화 시 킥 완료 상태도 리셋
         }
-        Debug.Log($"[KickSystem] 킥 {(enabled ? "활성화" : "비활성화")}");
+        //Debug.Log($"[KickSystem] 킥 {(enabled ? "활성화" : "비활성화")}");
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class KickSystem : MonoBehaviour
     {
         hasKicked = false;  // 킥 완료 상태만 리셋
         // canKick은 리셋하지 않음 - SetKickEnabled()로 별도 제어
-        Debug.Log("[KickSystem] 킥 상태 리셋 - hasKicked를 false로 설정");
+        //Debug.Log("[KickSystem] 킥 상태 리셋 - hasKicked를 false로 설정");
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class KickSystem : MonoBehaviour
         hasKicked = true;
         canKick = false;
 
-        Debug.Log("[KickSystem] 플레이어가 공을 찼습니다!");
+       // Debug.Log("[KickSystem] 플레이어가 공을 찼습니다!");
 
         // 월드 좌표계 고정 범위에서 랜덤 목표 생성
         actualKickTarget = GenerateRandomKickTarget();

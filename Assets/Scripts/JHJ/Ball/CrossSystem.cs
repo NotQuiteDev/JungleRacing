@@ -214,8 +214,8 @@ public class CrossSystem : MonoBehaviour
         // 이벤트 발생
         OnCrossStarted?.Invoke(actualCrossTarget);
 
-        Debug.Log($"[CrossSystem] 크로스 시작! 목표: {actualCrossTarget} (랜덤: {useRandomCross})");
-        Debug.Log($"[CrossSystem] 초기 속도: {initialVelocity}, 예상 최고 높이: {calculatedMaxHeight:F2}m");
+        //Debug.Log($"[CrossSystem] 크로스 시작! 목표: {actualCrossTarget} (랜덤: {useRandomCross})");
+        //Debug.Log($"[CrossSystem] 초기 속도: {initialVelocity}, 예상 최고 높이: {calculatedMaxHeight:F2}m");
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class CrossSystem : MonoBehaviour
         {
             markerManager.OnCrossCompleted();
         }
-        Debug.Log("[CrossSystem] 크로스 완료");
+        //Debug.Log("[CrossSystem] 크로스 완료");
     }
 
     /// <summary>
@@ -349,7 +349,7 @@ public class CrossSystem : MonoBehaviour
         calculatedMaxHeight = startPosition.y + (finalVelocity.y * finalVelocity.y) / (2f * gravity);
         this.flightTime = calculatedFlightTime;
 
-        Debug.Log($"[CrossSystem] 궤적 계산(동적 보정) - 비행시간: {calculatedFlightTime:F2}s, 적용된 보정치: {compensation:F2}");
+        //Debug.Log($"[CrossSystem] 궤적 계산(동적 보정) - 비행시간: {calculatedFlightTime:F2}s, 적용된 보정치: {compensation:F2}");
 
         return finalVelocity;
     }

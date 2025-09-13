@@ -18,6 +18,8 @@ public class JHJ_Keeper : MonoBehaviour
     [SerializeField] private Rigidbody legRigid;
     [SerializeField] private Transform targetPos;
 
+    public GoalTrigger goalTrigger;
+
     // Const
     private const string WALKANIM = "isWalk";
     private string[] DanceANIM = { "isTwerk", "isSilly", "isBreakDance", "isSlide" };
@@ -103,19 +105,30 @@ public class JHJ_Keeper : MonoBehaviour
             ballCrossSystem = FindFirstObjectByType<CrossSystem>();
         }
 
+
+        goalTrigger.OnFailAction += OnDefence;
+
         // 킥 이벤트 구독
         if (ballKickSystem != null)
         {
             ballKickSystem.OnKickExecuted += OnPlayerKicked;
-            Debug.Log("[JHJ_Keeper] KickSystem 이벤트 구독 완료");
+            //Debug.Log("[JHJ_Keeper] KickSystem 이벤트 구독 완료");
         }
         else
         {
             Debug.LogWarning("[JHJ_Keeper] KickSystem을 찾을 수 없습니다!");
         }
 
+        
+
         // 골키퍼 기본 상태로 초기화
         StartCoroutine(InitBasic());
+    }
+
+    private void OnDefence()
+    {
+        if (!goalTrigger.goalProcessed) isCeremony = true;
+        StartCoroutine(InitSetting());
     }
 
     private void OnPlayerKicked(Vector3 kickTarget)
@@ -172,7 +185,41 @@ public class JHJ_Keeper : MonoBehaviour
 
     private IEnumerator InitSetting()
     {
+        yield return new WaitForSeconds(1.5f);
+
+        Debug.Log("골을 체크 " + goalTrigger.goalProcessed);
+
+        if (!goalTrigger.goalProcessed) isCeremony = true;
+        /*
+        if (isCeremony)
+        {
+            if (delayCoroutine != null) StopCoroutine(delayCoroutine);
+            if (divingCoroutine != null) StopCoroutine(divingCoroutine);
+
+            DisableRagdoll();
+            anim.enabled = false;
+            rb.isKinematic = true;
+            rb.linearVelocity = Vector3.zero;
+
+            yield return null;
+
+            rb.isKinematic = false;
+            isRagDoll = false;
+            anim.enabled = true;
+
+            int num = Random.Range(0, danceCount);
+
+            anim.SetTrigger(DanceANIM[num]);
+        }
+
+
+        yield return new WaitForSeconds(1f); */
+
+        Debug.Log("골 실패 세레머니");
+
         yield return new WaitForSeconds(2.5f);
+
+        if(isCeremony) anim.SetTrigger(ENDANIM);
 
         if (delayCoroutine != null) StopCoroutine(delayCoroutine);
         if (divingCoroutine != null) StopCoroutine(divingCoroutine);
@@ -185,6 +232,7 @@ public class JHJ_Keeper : MonoBehaviour
         DisableRagdoll();
         yield return null;
 
+        isCeremony = false;
         anim.enabled = false;
         rb.isKinematic = true;
         rb.linearVelocity = Vector3.zero;

@@ -105,7 +105,7 @@ public class SoccerBallCross : MonoBehaviour
         // 궤적 기록 시작
         trajectoryRenderer.StartTrajectory();
         
-        Debug.Log($"[SoccerBallCross] 크로스 시작! 목표: {target}");
+        //Debug.Log($"[SoccerBallCross] 크로스 시작! 목표: {target}");
     }
 
     /// <summary>

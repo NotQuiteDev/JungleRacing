@@ -71,7 +71,7 @@ public class TrajectoryRenderer : MonoBehaviour
     {
         isActive = true;
         ClearTrajectory();
-        Debug.Log("[TrajectoryRenderer] 궤적 기록 시작");
+        //Debug.Log("[TrajectoryRenderer] 궤적 기록 시작");
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class TrajectoryRenderer : MonoBehaviour
             ClearTrajectory();
         }
 
-        Debug.Log("[TrajectoryRenderer] 궤적 기록 중단");
+        //Debug.Log("[TrajectoryRenderer] 궤적 기록 중단");
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class TrajectoryRenderer : MonoBehaviour
     {
         trajectoryIndex = 0;
         trajectoryPoints = new Vector3[200];
-        Debug.Log("[TrajectoryRenderer] 궤적 정리 완료");
+        //Debug.Log("[TrajectoryRenderer] 궤적 정리 완료");
     }
     #endregion
 

@@ -86,7 +86,7 @@ public class MarkerManager : MonoBehaviour
     {
         if (!enableCrossTargetMarker || crossTargetPrefab == null)
         {
-            Debug.Log("[MarkerManager] 크로스 목표 마커가 비활성화되어 있거나 프리팹이 없습니다.");
+            //Debug.Log("[MarkerManager] 크로스 목표 마커가 비활성화되어 있거나 프리팹이 없습니다.");
             return;
         }
 
@@ -97,7 +97,7 @@ public class MarkerManager : MonoBehaviour
         crossTargetMarkerInstance = Instantiate(crossTargetPrefab, position, Quaternion.identity);
         crossTargetMarkerInstance.name = "CrossTargetMarker";
 
-        Debug.Log($"[MarkerManager] 크로스 목표 마커 생성: {position}");
+        //Debug.Log($"[MarkerManager] 크로스 목표 마커 생성: {position}");
 
         // 자동 삭제 설정
         if (crossMarkerLifetime > 0f)
@@ -122,7 +122,7 @@ public class MarkerManager : MonoBehaviour
                 DestroyImmediate(crossTargetMarkerInstance);
             }
             crossTargetMarkerInstance = null;
-            Debug.Log("[MarkerManager] 크로스 목표 마커 정리 완료");
+            //Debug.Log("[MarkerManager] 크로스 목표 마커 정리 완료");
         }
     }
 
@@ -264,7 +264,7 @@ public class MarkerManager : MonoBehaviour
         {
             groundMarkerInstance = Instantiate(groundMarkerPrefab, position, Quaternion.identity);
             groundMarkerInstance.name = "GroundProjectionMarker";
-            Debug.Log($"[MarkerManager] 지면 투영 마커 생성: {position}");
+            //Debug.Log($"[MarkerManager] 지면 투영 마커 생성: {position}");
         }
         else
         {
@@ -290,7 +290,7 @@ public class MarkerManager : MonoBehaviour
                 DestroyImmediate(groundMarkerInstance);
             }
             groundMarkerInstance = null;
-            Debug.Log("[MarkerManager] 지면 투영 마커 정리 완료");
+           // Debug.Log("[MarkerManager] 지면 투영 마커 정리 완료");
         }
     }
 
