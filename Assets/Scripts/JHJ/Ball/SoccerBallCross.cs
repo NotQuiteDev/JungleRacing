@@ -157,9 +157,17 @@ public class SoccerBallCross : MonoBehaviour
     /// </summary>
     private void ResetForNextCross()
     {
+        // 킥 상태만 리셋 (활성화 상태는 유지하지 않음)
         kickSystem.ResetKick();
         markerManager.CleanupGroundMarker();
+        
         Debug.Log("[SoccerBallCross] 다음 크로스 준비 완료");
+        
+        // 자동 크로스가 활성화되어 있으면 새 크로스 시작
+        if (autoStartCross)
+        {
+            Invoke(nameof(StartCross), delayBeforeStart);
+        }
     }
     #endregion
 
