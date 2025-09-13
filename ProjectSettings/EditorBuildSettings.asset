@@ -32,6 +32,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LCH_iamGiant.unity
     guid: fe40d0901ad87084a9dee9d4aed9c2e6
+  - enabled: 1
+    path: Assets/Scenes/LCH_LocalmultiPlay.unity
+    guid: 8e5f574664071a74f9e351e0802d2ef1
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
