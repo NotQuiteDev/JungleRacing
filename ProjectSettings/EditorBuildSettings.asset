@@ -5,27 +5,33 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/MainMenu.unity
     guid: 0728c395c66ff7d4da81352fd61a178b
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/JHJ/JHJ Soccer Scene.unity
     guid: 8ce57cb87b32cb848a805f86f9cbd837
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/PKH/RagDollTutorial.unity
     guid: 10fce32f7a9f88c458a9daa8e7dcb984
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/LCHRagDollTutorial.unity
     guid: 63c7dcc435fd87141a788e2322d46294
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/LCH_RealSoccerMany.unity
     guid: cfe56d9dda767ba4bab620a88a1d719c
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/LCH_Soccer_Cloning.unity
     guid: 359d5bd2da28bd646a220df0045d2434
   - enabled: 1
     path: Assets/Scenes/LCH_soccar.unity
     guid: de1f6124553f45246a3177b4e23e744f
+  - enabled: 1
+    path: Assets/Scenes/LCH_GiantSoccer.unity
+    guid: 3fde2c97f152f094daeaa75cfcd0a232
+  - enabled: 1
+    path: Assets/Scenes/LCH_iamGiant.unity
+    guid: fe40d0901ad87084a9dee9d4aed9c2e6
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: d321ce5b1fb4976459630862de9b9d45, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

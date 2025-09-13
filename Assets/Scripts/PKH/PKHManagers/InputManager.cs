@@ -8,7 +8,7 @@ public class InputManager : MonoBehaviour
     public static InputManager Instance { get; private set;}
 
     public event EventHandler OnAttack;
-    //public event EventHandler OnSetting;
+    public event EventHandler OnPause;
 
     public PlayerInput playerInput {  get; private set; }
     public bool connectGamePad { get; private set; } = false;
@@ -20,8 +20,18 @@ public class InputManager : MonoBehaviour
         playerInput = new PlayerInput();
         playerInput.Player.Enable();
 
-        //playerInput.Player.Cancle.performed += OnSetting_performed;
+        playerInput.Player.Pause.performed += Pause_performed;
         playerInput.Player.Diving.performed += Attack_performed;
+    }
+
+    private void Pause_performed(InputAction.CallbackContext obj)
+    {
+        OnPause?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Attack_performed(InputAction.CallbackContext obj)
+    {
+        OnAttack?.Invoke(this, EventArgs.Empty);
     }
 
     private void Start()
@@ -49,6 +59,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        playerInput.Player.Pause.performed -= Pause_performed;
         playerInput.Player.Diving.performed -= Attack_performed;
 
         playerInput.Dispose();
@@ -78,11 +89,6 @@ public class InputManager : MonoBehaviour
         //PlayerController.Instance.ChangeSensity(isController);
     }
 
-
-    private void Attack_performed(InputAction.CallbackContext obj)
-    {
-        OnAttack?.Invoke(this, EventArgs.Empty);
-    }
 
     public Vector2 MoveDirNormalized()
     {

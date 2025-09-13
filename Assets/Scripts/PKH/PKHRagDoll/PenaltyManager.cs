@@ -14,6 +14,7 @@ public class PenaltyManager : MonoBehaviour
     [SerializeField] private GameObject manual;
     [SerializeField] private GameObject gameOver;
     [SerializeField] private GameObject gameClear;
+    [SerializeField] private GameObject pauseUI;
 
     // Event
     public event EventHandler<bool> ChangeKickerEvent;
@@ -45,9 +46,21 @@ public class PenaltyManager : MonoBehaviour
 
     private bool isManual = false;
 
+    public bool isPause = false;
+
     private void Awake()
     {
         if(Instance == null) Instance = this;
+    }
+
+    private void Start()
+    {
+        InputManager.Instance.OnPause += InputManager_OnPause;
+    }
+
+    private void InputManager_OnPause(object sender, EventArgs e)
+    {
+        PauseGame();
     }
 
     private void Update()
@@ -128,6 +141,7 @@ public class PenaltyManager : MonoBehaviour
 
     public void MainMenu()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene(0);
     }
 
@@ -135,5 +149,36 @@ public class PenaltyManager : MonoBehaviour
     {
         isManual = !isManual;
         manual.SetActive(isManual);
+    }
+
+    public void PauseGame()
+    {
+        Debug.Log("Pause Game");
+
+        if (isPause) // 이미 켜진 상태
+        {
+            Resume();
+        }
+        else // 꺼진 상태
+        {
+            pauseUI.gameObject.SetActive(true);
+            Time.timeScale = 0f;
+            isPause = true;
+        }
+    }
+
+    public void Resume()
+    {
+        pauseUI.gameObject.SetActive(false);
+        Time.timeScale = 1f;
+        isPause = false;
+    }
+
+    public void Restart()
+    {
+        Time.timeScale = 1f;
+
+        SceneManager.LoadScene(2);
+        Destroy(InputManager.Instance.gameObject);
     }
 }

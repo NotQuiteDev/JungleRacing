@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 
-public class AutoScrollView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class AutoScrollView : MonoBehaviour
 {
     [SerializeField] private ScrollRect scrollRect;
     private RectTransform content;
@@ -49,10 +50,4 @@ public class AutoScrollView : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         }
         else isLerp = true;
     }
-
-    // 마우스 드래그 차단
-    public void OnBeginDrag(PointerEventData eventData) { }
-    public void OnDrag(PointerEventData eventData) { }
-    public void OnEndDrag(PointerEventData eventData) { }
-
 }
