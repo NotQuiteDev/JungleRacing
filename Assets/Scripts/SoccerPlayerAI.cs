@@ -84,7 +84,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
         StartCoroutine(CheckBoundsPeriodically());
     }
 
-    void Awake()
+    protected void Awake()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
@@ -176,7 +176,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     Vector3 GetDefendingPosition() { return transform.position; }
     private bool IsShotAligned() { if (opponentGoal == null || ball == null) return false; Vector3 aiPos = new Vector3(transform.position.x, 0, transform.position.z); Vector3 ballPos = new Vector3(ball.position.x, 0, ball.position.z); Vector3 goalPos = new Vector3(opponentGoal.position.x, 0, opponentGoal.position.z); Vector3 shotDirection = (ballPos - aiPos).normalized; Vector3 vectorToGoal = goalPos - aiPos; float projection = Vector3.Dot(vectorToGoal, shotDirection); if (projection < 0) return false; Vector3 closestPointOnLine = aiPos + shotDirection * projection; float distanceFromLine = Vector3.Distance(closestPointOnLine, goalPos); return distanceFromLine <= shotTargetRadius; }
 
-    void Tackle(Transform target)
+    public void Tackle(Transform target)
     {
         Vector3 diveDirection;
         if (target == ball)
@@ -250,7 +250,7 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
     // ====================================================================
 
     #region Ragdoll System
-    private void DisableRagdoll()
+    protected void DisableRagdoll()
     {
         isRagDoll = false; Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0); transform.position = original; anim.enabled = true; foreach (var j in joints) { j.enableCollision = false; }
         foreach (var c in ragColls) { c.enabled = false; }
@@ -266,8 +266,8 @@ public class SoccerPlayerAI : MonoBehaviour, IRagdollController
         yield return new WaitForSeconds(spawnInvincibilityDuration);
         isInvincible = false; // 설정된 시간이 지나면 무적 상태 해제
     }
-    private void EnableRagdoll() { isRagDoll = true; anim.enabled = false; foreach (var j in joints) { j.enableCollision = true; } foreach (var c in ragColls) c.enabled = true; foreach (var r in ragsRigid) { r.linearVelocity = rb.linearVelocity; r.detectCollisions = true; r.useGravity = true; } rb.detectCollisions = false; rb.useGravity = false; col.enabled = false; }
-    private IEnumerator ResetRagDoll() { yield return new WaitForSeconds(ragdollResetTime); DisableRagdoll(); }
+    protected void EnableRagdoll() { isRagDoll = true; anim.enabled = false; foreach (var j in joints) { j.enableCollision = true; } foreach (var c in ragColls) c.enabled = true; foreach (var r in ragsRigid) { r.linearVelocity = rb.linearVelocity; r.detectCollisions = true; r.useGravity = true; } rb.detectCollisions = false; rb.useGravity = false; col.enabled = false; }
+    protected IEnumerator ResetRagDoll() { yield return new WaitForSeconds(ragdollResetTime); DisableRagdoll(); }
 
     // [수정된 부분] =======================================================
     private void OnCollisionEnter(Collision collision)

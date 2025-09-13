@@ -8,10 +8,12 @@ public class InputManager : MonoBehaviour
     public static InputManager Instance { get; private set;}
 
     public event EventHandler OnAttack;
-    //public event EventHandler OnSetting;
+    public event EventHandler OnPause;
 
     public PlayerInput playerInput {  get; private set; }
     public bool connectGamePad { get; private set; } = false;
+
+    public float cameraSensitivity = 1f;
 
     private void Awake()
     {
@@ -20,8 +22,18 @@ public class InputManager : MonoBehaviour
         playerInput = new PlayerInput();
         playerInput.Player.Enable();
 
-        //playerInput.Player.Cancle.performed += OnSetting_performed;
+        playerInput.Player.Pause.performed += Pause_performed;
         playerInput.Player.Diving.performed += Attack_performed;
+    }
+
+    private void Pause_performed(InputAction.CallbackContext obj)
+    {
+        OnPause?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Attack_performed(InputAction.CallbackContext obj)
+    {
+        OnAttack?.Invoke(this, EventArgs.Empty);
     }
 
     private void Start()
@@ -49,6 +61,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        playerInput.Player.Pause.performed -= Pause_performed;
         playerInput.Player.Diving.performed -= Attack_performed;
 
         playerInput.Dispose();
@@ -63,10 +76,12 @@ public class InputManager : MonoBehaviour
                 case InputDeviceChange.Added:
                     connectGamePad = true;
                     ChangeDeviceState(true);
+                    cameraSensitivity = 0.7f;
                     break;
                 case InputDeviceChange.Removed:
                     connectGamePad = false;
                     ChangeDeviceState(false);
+                    cameraSensitivity = 1f;
                     break;
             }
         }
@@ -79,11 +94,6 @@ public class InputManager : MonoBehaviour
     }
 
 
-    private void Attack_performed(InputAction.CallbackContext obj)
-    {
-        OnAttack?.Invoke(this, EventArgs.Empty);
-    }
-
     public Vector2 MoveDirNormalized()
     {
         Vector2 dir = playerInput.Player.Move.ReadValue<Vector2>();
@@ -94,6 +104,11 @@ public class InputManager : MonoBehaviour
     public bool UpDiving()
     {
         return playerInput.Player.Run.IsPressed();
+    }
+
+    public Vector2 CameraDirNormalized()
+    {
+        return playerInput.Player.Look.ReadValue<Vector2>().normalized;
     }
 }
 

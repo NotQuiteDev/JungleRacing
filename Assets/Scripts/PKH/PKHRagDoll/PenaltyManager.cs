@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PenaltyManager : MonoBehaviour
 {
@@ -13,7 +15,11 @@ public class PenaltyManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private GameObject manual;
     [SerializeField] private GameObject gameOver;
+    [SerializeField] private Button gameOverButton;
     [SerializeField] private GameObject gameClear;
+    [SerializeField] private Button gameClearButton;
+    [SerializeField] private GameObject pauseUI;
+    [SerializeField] private Button resumeButton;
 
     // Event
     public event EventHandler<bool> ChangeKickerEvent;
@@ -45,9 +51,21 @@ public class PenaltyManager : MonoBehaviour
 
     private bool isManual = false;
 
+    public bool isPause = false;
+
     private void Awake()
     {
         if(Instance == null) Instance = this;
+    }
+
+    private void Start()
+    {
+        InputManager.Instance.OnPause += InputManager_OnPause;
+    }
+
+    private void InputManager_OnPause(object sender, EventArgs e)
+    {
+        PauseGame();
     }
 
     private void Update()
@@ -111,6 +129,7 @@ public class PenaltyManager : MonoBehaviour
             if (playerScore >= 5)
             {
                 isGameEnd = true;
+                EventSystem.current.SetSelectedGameObject(gameClearButton.gameObject);
                 gameClear.SetActive(true);
             }
         }
@@ -120,6 +139,7 @@ public class PenaltyManager : MonoBehaviour
             if (aiScore >= 5)
             {
                 isGameEnd = true;
+                EventSystem.current.SetSelectedGameObject(gameOverButton.gameObject);
                 gameOver.SetActive(true);
             }
         }
@@ -128,6 +148,7 @@ public class PenaltyManager : MonoBehaviour
 
     public void MainMenu()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene(0);
     }
 
@@ -135,5 +156,37 @@ public class PenaltyManager : MonoBehaviour
     {
         isManual = !isManual;
         manual.SetActive(isManual);
+    }
+
+    public void PauseGame()
+    {
+        Debug.Log("Pause Game");
+
+        if (isPause) // 이미 켜진 상태
+        {
+            Resume();
+        }
+        else // 꺼진 상태
+        {
+            pauseUI.gameObject.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(resumeButton.gameObject);
+            Time.timeScale = 0f;
+            isPause = true;
+        }
+    }
+
+    public void Resume()
+    {
+        pauseUI.gameObject.SetActive(false);
+        Time.timeScale = 1f;
+        isPause = false;
+    }
+
+    public void Restart()
+    {
+        Time.timeScale = 1f;
+
+        SceneManager.LoadScene(2);
+        Destroy(InputManager.Instance.gameObject);
     }
 }
