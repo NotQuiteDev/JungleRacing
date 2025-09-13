@@ -26,12 +26,14 @@ public class JHJ_Keeper : MonoBehaviour
     // Status
     private Vector3 upDivingOffset = new Vector3(0, 0.6f, 0);
     private Vector3 downDivingOffset = new Vector3(0, 0.14f, 0);
+    private Vector3 initVecOffset = new Vector3(0, 0, 8);
 
     // State - 골키퍼 전용
     private bool isRagDoll = false;
     private bool isDiving = false;
     private Coroutine ragDollCoroutine;
     private Coroutine divingCoroutine;
+    private Coroutine delayCoroutine;
 
     // 골키퍼 세레머니만 유지
     private bool isCeremony = false;
@@ -73,7 +75,7 @@ public class JHJ_Keeper : MonoBehaviour
     private void Start()
     {
         // PenaltyManager 사용 씬인지 확인
-        if (PenaltyManager.Instance != null)
+        /*if (PenaltyManager.Instance != null)
         {
             // PKH 페널티킥 게임 씬
             PenaltyManager.Instance.ChangeKickerEvent += PenaltyManager_ChangeKickerEvent;
@@ -84,7 +86,9 @@ public class JHJ_Keeper : MonoBehaviour
             // JHJ 크로스/킥 시스템 씬
             Debug.Log("[JHJ_Keeper] JHJ 크로스/킥 시스템 씬에서 실행 중");
             InitializeForCrossKickSystem();
-        }
+        }*/
+
+        InitializeForCrossKickSystem();
     }
 
     private void InitializeForCrossKickSystem()
@@ -125,8 +129,13 @@ public class JHJ_Keeper : MonoBehaviour
             return;
         }
 
+        if( delayCoroutine != null) StopCoroutine(delayCoroutine);
+        delayCoroutine = StartCoroutine(DelayedDiving(kickTarget));
+
         // 반응 시간 후 다이빙 시작
-        StartCoroutine(DelayedDiving(kickTarget));
+        //StartCoroutine(DelayedDiving(kickTarget));
+
+        StartCoroutine(InitSetting());
     }
 
     private IEnumerator DelayedDiving(Vector3 kickTarget)
@@ -148,7 +157,7 @@ public class JHJ_Keeper : MonoBehaviour
         divingCoroutine = StartCoroutine(DivingCoroutine(kickTarget));
     }
 
-    private void PenaltyManager_ChangeKickerEvent(object sender, bool e)
+    /*private void PenaltyManager_ChangeKickerEvent(object sender, bool e)
     {
         if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
         if (divingCoroutine != null) StopCoroutine(divingCoroutine);
@@ -159,11 +168,30 @@ public class JHJ_Keeper : MonoBehaviour
     private void InitializeAsKeeper()
     {
         StartCoroutine(Init());
+    }*/
+
+    private IEnumerator InitSetting()
+    {
+        yield return new WaitForSeconds(2.5f);
+
+        if (delayCoroutine != null) StopCoroutine(delayCoroutine);
+        if (divingCoroutine != null) StopCoroutine(divingCoroutine);
+
+        StartCoroutine(InitBasic());
     }
 
     private IEnumerator InitBasic()
     {
         DisableRagdoll();
+        yield return null;
+
+        anim.enabled = false;
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+
+        transform.position = initVecOffset;
+        rb.position = initVecOffset;
+
         yield return null;
 
         isDiving = false;
@@ -180,7 +208,7 @@ public class JHJ_Keeper : MonoBehaviour
         anim.SetBool(WALKANIM, false);
     }
 
-    private IEnumerator Init()
+   /* private IEnumerator Init()
     {
         DisableRagdoll();
         yield return null;
@@ -213,9 +241,9 @@ public class JHJ_Keeper : MonoBehaviour
         }
 
         anim.SetBool(WALKANIM, false);
-    }
+    }*/
 
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         // PenaltyManager가 있는 씬에서만 기존 로직 실행
         if (PenaltyManager.Instance != null)
@@ -228,12 +256,12 @@ public class JHJ_Keeper : MonoBehaviour
 
         // JHJ 크로스/킥 시스템에서는 자동 다이빙 비활성화
         // 플레이어 킥 이벤트에 의해서만 다이빙 실행
-    }
+    }*/
 
     private void Update()
     {
         // PenaltyManager가 있는 씬에서만 세레머니 체크
-        if (PenaltyManager.Instance != null)
+        /*if (PenaltyManager.Instance != null)
         {
             if (PenaltyManager.Instance.isGameEnd) return;
             if (isCeremony) return;
@@ -243,7 +271,7 @@ public class JHJ_Keeper : MonoBehaviour
                 Ceremony();
                 return;
             }
-        }
+        }*/
     }
 
     private void DisableRagdoll()
@@ -364,6 +392,7 @@ public class JHJ_Keeper : MonoBehaviour
         DisableRagdoll();
     }
 
+    /*
     // 골키퍼 세레머니만 유지 (PenaltyManager 있는 씬에서만)
     public void Ceremony()
     {
@@ -376,8 +405,9 @@ public class JHJ_Keeper : MonoBehaviour
             isCeremony = true;
             CeremonyStart();
         }
-    }
+    }*/
 
+    /*
     private void CeremonyStart()
     {
         Debug.Log("골키퍼 세레머니 시작 - 선방!");
@@ -402,7 +432,7 @@ public class JHJ_Keeper : MonoBehaviour
 
         int num = Random.Range(0, danceCount);
         anim.SetTrigger(DanceANIM[num]);
-    }
+    }*/
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -426,11 +456,11 @@ public class JHJ_Keeper : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 이벤트 구독 해제
+        /*// 이벤트 구독 해제
         if (PenaltyManager.Instance != null)
         {
             PenaltyManager.Instance.ChangeKickerEvent -= PenaltyManager_ChangeKickerEvent;
-        }
+        }*/
 
         if (ballKickSystem != null)
         {
