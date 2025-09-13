@@ -599,8 +599,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -768,6 +768,7 @@ GameObject:
   - component: {fileID: 562986021}
   - component: {fileID: 562986020}
   - component: {fileID: 562986023}
+  - component: {fileID: 562986024}
   m_Layer: 5
   m_Name: MoveSceneButton
   m_TagString: Untagged
@@ -793,7 +794,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 80}
+  m_SizeDelta: {x: 275, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &562986020
 MonoBehaviour:
@@ -808,15 +809,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 1
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
+    m_SelectOnRight: {fileID: 1943983960}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 1, b: 0.11101627, a: 1}
+    m_NormalColor: {r: 0.29803923, g: 0.8392157, b: 0.35686275, a: 1}
     m_HighlightedColor: {r: 0.12941177, g: 0.54901963, b: 0.07058824, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.12771487, g: 0.5471698, b: 0.069686726, a: 1}
@@ -892,6 +893,19 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
   m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
+--- !u!114 &562986024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 562986018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2823447b62ccd941bd72516263b6ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonIndex: 0
 --- !u!1 &596181974
 GameObject:
   m_ObjectHideFlags: 0
@@ -1013,8 +1027,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1078,6 +1092,7 @@ GameObject:
   - component: {fileID: 714545510}
   - component: {fileID: 714545509}
   - component: {fileID: 714545512}
+  - component: {fileID: 714545513}
   m_Layer: 5
   m_Name: MoveSceneButton
   m_TagString: Untagged
@@ -1103,7 +1118,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 80}
+  m_SizeDelta: {x: 275, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &714545509
 MonoBehaviour:
@@ -1118,7 +1133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 1
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1126,7 +1141,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 1, b: 0.11101627, a: 1}
+    m_NormalColor: {r: 0.29803923, g: 0.8392157, b: 0.35686275, a: 1}
     m_HighlightedColor: {r: 0.12941177, g: 0.54901963, b: 0.07058824, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.12771487, g: 0.5471698, b: 0.069686726, a: 1}
@@ -1202,6 +1217,19 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
   m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
+--- !u!114 &714545513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714545507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2823447b62ccd941bd72516263b6ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonIndex: 3
 --- !u!1 &719446078
 GameObject:
   m_ObjectHideFlags: 0
@@ -1252,7 +1280,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.7830189, g: 0.42475083, b: 0.42475083, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1480,7 +1508,7 @@ GameObject:
   - component: {fileID: 914454069}
   - component: {fileID: 914454068}
   - component: {fileID: 914454067}
-  - component: {fileID: 914454070}
+  - component: {fileID: 914454071}
   m_Layer: 5
   m_Name: Game Scroll
   m_TagString: Untagged
@@ -1522,12 +1550,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1761006638}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 0
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
-  m_DecelerationRate: 0.135
+  m_DecelerationRate: 0.1
   m_ScrollSensitivity: 1
   m_Viewport: {fileID: 330774967}
   m_HorizontalScrollbar: {fileID: 2011001909}
@@ -1577,22 +1605,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 914454065}
   m_CullTransparentMesh: 1
---- !u!114 &914454070
+--- !u!114 &914454071
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 914454065}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa0512056c3a2304b8137480e90cb571, type: 3}
+  m_Script: {fileID: 11500000, guid: 2f6b6a4fc69abf24cb2856422619d4bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollDirection: 1
-  scrollSpeed: 10
-  cancelScrollOnInput: 0
-  cancelScrollKeycodes: 
+  scrollRect: {fileID: 0}
+  buttonOffsets:
+  - 0
+  - -170
+  - -850
+  - -1530
+  - -1700
+  curIndex: 0
 --- !u!1 &953060443
 GameObject:
   m_ObjectHideFlags: 0
@@ -1902,8 +1934,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2004,6 +2036,7 @@ GameObject:
   - component: {fileID: 1678607095}
   - component: {fileID: 1678607094}
   - component: {fileID: 1678607097}
+  - component: {fileID: 1678607098}
   m_Layer: 5
   m_Name: MoveSceneButton
   m_TagString: Untagged
@@ -2029,7 +2062,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 80}
+  m_SizeDelta: {x: 275, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1678607094
 MonoBehaviour:
@@ -2044,7 +2077,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 1
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2052,7 +2085,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 1, b: 0.11101627, a: 1}
+    m_NormalColor: {r: 0.29803923, g: 0.8392157, b: 0.35686275, a: 1}
     m_HighlightedColor: {r: 0.12941177, g: 0.54901963, b: 0.07058824, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.12771487, g: 0.5471698, b: 0.069686726, a: 1}
@@ -2128,6 +2161,19 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
   m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
+--- !u!114 &1678607098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1678607092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2823447b62ccd941bd72516263b6ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonIndex: 2
 --- !u!1 &1722255580
 GameObject:
   m_ObjectHideFlags: 0
@@ -2141,6 +2187,7 @@ GameObject:
   - component: {fileID: 1722255583}
   - component: {fileID: 1722255582}
   - component: {fileID: 1722255585}
+  - component: {fileID: 1722255586}
   m_Layer: 5
   m_Name: MoveSceneButton
   m_TagString: Untagged
@@ -2166,7 +2213,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 80}
+  m_SizeDelta: {x: 275, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1722255582
 MonoBehaviour:
@@ -2181,7 +2228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 1
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2189,7 +2236,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 1, b: 0.11101627, a: 1}
+    m_NormalColor: {r: 0.29803923, g: 0.8392157, b: 0.35686275, a: 1}
     m_HighlightedColor: {r: 0.12941177, g: 0.54901963, b: 0.07058824, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.12771487, g: 0.5471698, b: 0.069686726, a: 1}
@@ -2265,6 +2312,19 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
   m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
+--- !u!114 &1722255586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722255580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2823447b62ccd941bd72516263b6ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonIndex: 4
 --- !u!1 &1732789362
 GameObject:
   m_ObjectHideFlags: 0
@@ -2349,8 +2409,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2438,11 +2498,11 @@ RectTransform:
   - {fileID: 1383151710}
   m_Father: {fileID: 330774967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 3300, y: 584}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1761006639
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2779,8 +2839,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2844,6 +2904,7 @@ GameObject:
   - component: {fileID: 1943983961}
   - component: {fileID: 1943983960}
   - component: {fileID: 1943983963}
+  - component: {fileID: 1943983964}
   m_Layer: 5
   m_Name: MoveSceneButton
   m_TagString: Untagged
@@ -2869,7 +2930,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 80}
+  m_SizeDelta: {x: 275, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1943983960
 MonoBehaviour:
@@ -2884,7 +2945,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 1
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2892,7 +2953,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0, g: 1, b: 0.11101627, a: 1}
+    m_NormalColor: {r: 0.29803923, g: 0.8392157, b: 0.35686275, a: 1}
     m_HighlightedColor: {r: 0.12941177, g: 0.54901963, b: 0.07058824, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.12771487, g: 0.5471698, b: 0.069686726, a: 1}
@@ -2968,6 +3029,19 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
   m_EffectDistance: {x: 3, y: 3}
   m_UseGraphicAlpha: 1
+--- !u!114 &1943983964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943983958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2823447b62ccd941bd72516263b6ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonIndex: 1
 --- !u!1 &1973263070
 GameObject:
   m_ObjectHideFlags: 0
@@ -3156,7 +3230,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -3187,7 +3261,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 439104208}
   m_Direction: 0
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.4848485
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
