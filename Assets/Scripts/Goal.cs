@@ -10,8 +10,23 @@ public class Goal : MonoBehaviour
         // 부딪힌 오브젝트의 태그가 "Ball"인지 확인합니다.
         if (collision.gameObject.CompareTag("Ball"))
         {
-            // SoccerGameManager에게 골이 들어왔다고 알립니다.
-            SoccerGameManager.Instance.GoalScored(teamToAwardPoint);
+            // ✨✨✨ 바로 이 부분을 수정했습니다! ✨✨✨
+
+            // 1. 먼저 SoccerGameManager가 있는지 확인하고, 있으면 그 매니저에게 골을 알립니다.
+            if (SoccerGameManager.Instance != null)
+            {
+                SoccerGameManager.Instance.GoalScored(teamToAwardPoint);
+            }
+            // 2. 만약 없다면, CloneSoccerGameManager가 있는지 확인하고, 그 매니저에게 골을 알립니다.
+            else if (CloneSoccerGameManager.Instance != null)
+            {
+                CloneSoccerGameManager.Instance.GoalScored(teamToAwardPoint);
+            }
+            // 3. 둘 다 없으면 에러 메시지를 띄웁니다.
+            else
+            {
+                Debug.LogError("씬에 SoccerGameManager 또는 CloneSoccerGameManager가 없습니다!");
+            }
         }
     }
 }

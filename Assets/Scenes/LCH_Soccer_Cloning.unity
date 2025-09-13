@@ -5328,13 +5328,16 @@ MonoBehaviour:
   ball: {fileID: 1358753708}
   player: {fileID: 8774252604430637206}
   ai: {fileID: 7376031164857979959}
-  leftGoalPost: {fileID: 1343351065}
-  rightGoalPost: {fileID: 1897102893}
+  leftGoalPost: {fileID: 534557419}
+  rightGoalPost: {fileID: 1976851748}
   leftTeamPrefab: {fileID: 4477362711106288957, guid: 68179714b00e9f546a67412a89391276, type: 3}
   rightTeamPrefab: {fileID: 6991571186543277732, guid: 1588986bc52abfe4f9e894f1a009f917, type: 3}
-  leftTeamSpawnPoint: {fileID: 0}
-  rightTeamSpawnPoint: {fileID: 0}
-  clonesToSpawnPerGoal: 1
+  leftTeamSpawnPoint: {fileID: 1755717921}
+  rightTeamSpawnPoint: {fileID: 1755717921}
+  clonesToSpawnPerGoal: 2
+  safeZoneCollider: {fileID: 112531424}
+  leftTeamRespawnPoint: {fileID: 1343351065}
+  rightTeamRespawnPoint: {fileID: 1897102893}
   resetDelayAfterGoal: 2
 --- !u!1 &1517377877
 GameObject:

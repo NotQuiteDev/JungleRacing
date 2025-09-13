@@ -2,9 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// SoccerGameManager에 이미 'Team' enum이 있으므로 여기서는 정의하지 않습니다.
-// public enum Team { Left, Right } // 이 줄을 삭제하여 중복 정의 에러를 해결합니다.
-
 public class CloneSoccerGameManager : MonoBehaviour
 {
     // 다른 스크립트에서 쉽게 접근할 수 있도록 싱글톤 인스턴스를 만듭니다.
@@ -38,9 +35,17 @@ public class CloneSoccerGameManager : MonoBehaviour
     [Tooltip("오른쪽 팀 프리팹이 소환될 위치입니다.")]
     public Transform rightTeamSpawnPoint;
     
-    // ✨ --- 클론 생성 개수 설정 변수 추가 --- ✨
     [Tooltip("골이 들어갈 때마다 한 번에 소환할 클론의 수입니다.")]
     public int clonesToSpawnPerGoal = 1;
+    
+    // ✨ --- 경기장 설정 변수 추가 --- ✨
+    [Header("경기장 설정")]
+    [Tooltip("AI가 활동할 안전 영역으로 사용할 트리거 콜라이더입니다.")]
+    public Collider safeZoneCollider;
+    [Tooltip("왼쪽 팀이 맵 밖으로 나갔을 때 돌아올 리스폰 위치입니다.")]
+    public Transform leftTeamRespawnPoint;
+    [Tooltip("오른쪽 팀이 맵 밖으로 나갔을 때 돌아올 리스폰 위치입니다.")]
+    public Transform rightTeamRespawnPoint;
     // ✨ --- 여기까지 추가 --- ✨
 
 
@@ -95,14 +100,8 @@ public class CloneSoccerGameManager : MonoBehaviour
         {
             if (IsGamePlaying)
             {
-                if (isPaused)
-                {
-                    ResumeGame();
-                }
-                else
-                {
-                    PauseGame();
-                }
+                if (isPaused) { ResumeGame(); }
+                else { PauseGame(); }
             }
         }
 
@@ -153,7 +152,7 @@ public class CloneSoccerGameManager : MonoBehaviour
         StartCoroutine(ResetAfterGoal());
     }
 
-    // ✨ --- 클론 생성 개수를 반영하도록 함수 수정 --- ✨
+    // ✨ --- SpawnPrefab 함수에 정보 전달 코드 추가 --- ✨
     private void SpawnPrefab(Team teamToSpawn)
     {
         GameObject prefabToSpawn = null;
@@ -172,12 +171,36 @@ public class CloneSoccerGameManager : MonoBehaviour
 
         if (prefabToSpawn != null && spawnPoint != null)
         {
-            // 설정된 클론 수만큼 반복해서 생성
             for (int i = 0; i < clonesToSpawnPerGoal; i++)
             {
-                // 클론들이 겹치지 않도록 스폰 위치에 약간의 랜덤 값을 더함
                 Vector3 spawnPosition = spawnPoint.position + new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
-                Instantiate(prefabToSpawn, spawnPosition, spawnPoint.rotation);
+                GameObject newAIObject = Instantiate(prefabToSpawn, spawnPosition, spawnPoint.rotation);
+                SoccerPlayerAI aiScript = newAIObject.GetComponent<SoccerPlayerAI>();
+
+                if (aiScript != null)
+                {
+                    aiScript.ball = this.ball.transform;
+                    
+                    if (teamToSpawn == Team.Left)
+                    {
+                        aiScript.myGoal = leftGoalPost;
+                        aiScript.opponentGoal = rightGoalPost;
+                        aiScript.opponent = this.ai;
+                        // ✨ 리스폰 위치 전달 ✨
+                        aiScript.respawnPoint = leftTeamRespawnPoint;
+                    }
+                    else
+                    {
+                        aiScript.myGoal = rightGoalPost;
+                        aiScript.opponentGoal = leftGoalPost;
+                        aiScript.opponent = this.player;
+                        // ✨ 리스폰 위치 전달 ✨
+                        aiScript.respawnPoint = rightTeamRespawnPoint;
+                    }
+
+                    // ✨ 안전 구역(Safe Zone) 정보 전달 ✨
+                    aiScript.safeZoneCollider = this.safeZoneCollider;
+                }
             }
         }
         else
@@ -185,7 +208,6 @@ public class CloneSoccerGameManager : MonoBehaviour
             Debug.LogWarning(teamToSpawn.ToString() + " 팀의 프리팹 또는 스폰 포인트가 설정되지 않았습니다.");
         }
     }
-    // ✨ --- 여기까지 수정 --- ✨
 
     private IEnumerator ResetAfterGoal()
     {
@@ -250,9 +272,9 @@ public class CloneSoccerGameManager : MonoBehaviour
         }
     }
 
-    // OnGUI 함수는 변경 사항 없음
     void OnGUI()
     {
+        // (OnGUI 코드는 이전과 동일하므로 생략하지 않고 그대로 둡니다.)
         GUIStyle style = new GUIStyle();
         style.fontSize = 30;
         style.fontStyle = FontStyle.Bold;
