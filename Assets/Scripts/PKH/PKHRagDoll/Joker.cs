@@ -83,9 +83,6 @@ public class Joker : MonoBehaviour
     {
         StartCoroutine(Init());
     }
-
-
-
     private IEnumerator Init()
     {
         DisableRagdoll();
@@ -137,31 +134,16 @@ public class Joker : MonoBehaviour
             Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up);
             rb.MoveRotation(targetRot);
         }
-
-        if (isKicker)
-        {
-
-        }
-        else
-        {
-            
-        }
     }
-
 
     private void Update()
     {
-        if (isKicker)
-        {
+        if (PenaltyManager.Instance.isGameEnd) return;
 
-        }
-        else
+        curAttackDelay -= Time.deltaTime;
+        if (curAttackDelay <= 0f)
         {
-            curAttackDelay -= Time.deltaTime;
-            if (curAttackDelay <= 0f)
-            {
-                isAttack = false;
-            }
+            isAttack = false;
         }
     }
 
@@ -171,7 +153,7 @@ public class Joker : MonoBehaviour
 
         Vector3 original = spineRigid.position + new Vector3(0, -0.1f, 0);
         transform.position = original;
-        Debug.Log("스냅 처리됨");
+        //Debug.Log("스냅 처리됨");
 
         // 1. 애니메이션 실행
         anim.enabled = true;
@@ -248,6 +230,7 @@ public class Joker : MonoBehaviour
 
     private void Attack()
     {
+        if (PenaltyManager.Instance.isComplete) return;
         if (isAttack) return;
 
         if (attackCoroutine != null) StopCoroutine(attackCoroutine);
@@ -305,15 +288,6 @@ public class Joker : MonoBehaviour
 
             if (ragDollCoroutine != null) StopCoroutine(ragDollCoroutine);
             ragDollCoroutine = StartCoroutine(ResetRagDoll());
-        }
-
-        if (isKicker)
-        {
-
-        }
-        else
-        {
-            
         }
     }
 }

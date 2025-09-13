@@ -5,12 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
-    path: Assets/Scenes/LCHRagDollTutorial.unity
-    guid: 63c7dcc435fd87141a788e2322d46294
+    path: Assets/Scenes/PKH/RagDollTutorial.unity
+    guid: 10fce32f7a9f88c458a9daa8e7dcb984
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: d321ce5b1fb4976459630862de9b9d45, type: 3}
   m_UseUCBPForAssetBundles: 0
